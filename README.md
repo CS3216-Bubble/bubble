@@ -25,6 +25,7 @@ We can then then user id from request.user via socket.request.
 
 The spec describes our websocket API that our server exposes.
 Each header is an event name, and the payload is data that clients can send.
+
 Payload *must* be sent as a string, for the purposes of this spec,
 they are displayed as JSON structures.
 
@@ -191,7 +192,7 @@ Emits event `add_message` to all other users in room:
 ```
 
 
-### add_reaction,
+### add_reaction
 
 Show reaction to all connected users
 
