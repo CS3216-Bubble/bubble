@@ -72,7 +72,7 @@ Request payload:
 }
 ```
 
-Emits event 'room_joined' to all users connected to room with payload:
+Emits event `room_joined` to all users connected to room with payload:
 
 ```
 {
@@ -91,7 +91,7 @@ Notes: check if room has capacity for more people to join, is user authorized to
 }
 ```
 
-Emits event 'room_exited' to all users connected to room:
+Emits event `room_exited` to all users connected to room:
 
 ```
 {
