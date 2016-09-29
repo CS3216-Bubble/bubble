@@ -1,0 +1,30 @@
+{
+  "name": "bubble-backend",
+  "version": "0.0.1",
+  "description": "bubble",
+  "license": "MIT",
+  "repository": "ngzhian/bubble",
+  "dependencies": {
+    "express": "^4.10.2",
+    "socket.io": "^1.4.8"
+  },
+  "devDependencies": {
+    "eslint": "^3.6.1",
+    "eslint-config-google": "^0.6.0",
+    "mocha": "^3.1.0",
+    "nodemon": "^1.10.2",
+    "should": "^11.1.0",
+    "supertest": "^2.0.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run start nodemon && npm run test-watch",
+    "start": "nodemon",
+    "test": "mocha --bail --check-leaks test/",
+    "test-watch": "mocha --watch --bail --check-leaks test/",
+    "lint": "eslint ."
+  },
+  "engines": {
+    "node": "6.3.1"
+  }
+}
