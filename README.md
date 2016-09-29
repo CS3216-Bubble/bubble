@@ -28,6 +28,7 @@ Each header is an event name, and the payload is data that clients can send.
 Payload *must* be sent as a string, for the purposes of this spec,
 they are displayed as JSON structures.
 
+```
 UserId : String
 UserName : String
 RoomId : String
@@ -36,6 +37,7 @@ UserLimit : Integer
 Reason : String
 Message : String
 Reaction : Integer
+```
 
 ### create_room
 
@@ -215,10 +217,10 @@ Emits event `add_reaction` to all other users in room:
 
 Websocket events that the server will emit to clients.
 
-    - `room_created`
-    - `room_joined`
-    - `room_exited`
-    - `typing`
-    - `stop_typing`
-    - `add_message`
-    - `add_reaction`
+- `room_created`
+- `room_joined`
+- `room_exited`
+- `typing`
+- `stop_typing`
+- `add_message`
+- `add_reaction`
