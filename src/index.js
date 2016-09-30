@@ -14,8 +14,42 @@ app.get('/readme', function(req, res) {
 
 var numUsers = 0;
 
+const tryJson = data => {
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return {};
+  }
+};
+
+const emitAppError = (socket, code, message) => (
+  socket.emit('bubble_error', {
+    code,
+    message,
+  }));
+
+const createRoom = (roomName, userLimit) => ({});
+
+const onCreateRoom = socket => data => {
+  // socket.broadcast.emit('room_created');
+  const { userId, roomName, userLimit = 7 } = tryJson(data);
+
+  if (userId) {
+  }
+
+  if (!roomName) {
+    const message = 'Room name is not specified';
+    return emitAppError(socket, 1, message);
+  }
+
+  createRoom(roomName, userLimit);
+  socket.emit('room_created', { roomId: 1 });
+};
+
 io.on('connection', function(socket) {
   var addedUser = false;
+
+  socket.on('create_room', onCreateRoom(socket));
 
   socket.on('chat message', function(msg) {
     io.emit('chat message', msg);
@@ -76,6 +110,4 @@ io.on('connection', function(socket) {
   });
 });
 
-http.listen(3000, undefined, undefined, function() {
-  console.log('listening on *:3000');
-});
+exports.server = http.listen(3000);

@@ -1,19 +1,42 @@
-var assert = require('assert');
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-
-// dummy test, should remove!
-describe('Array', function() {
-  describe('#indexOf()', function() {
-    it('should return -1 when the value is not present', function() {
-      assert.equal(-1, [1, 2, 3].indexOf(4));
-    });
-  });
-});
+import { afterEach, beforeEach, describe, it } from 'mocha';
+import io from 'socket.io-client';
+import 'should';
 
 describe('API', function() {
+  let server;
+  let options = {
+    'transports': ['websocket'],
+    'force new connection': true,
+  };
+
+  beforeEach(function(done) {
+    // require and runs the server before each test
+    server = require('../').server;
+    done();
+  });
+
+  afterEach(function(done) {
+    // close the server connection after each test
+    server.close();
+    done();
+  });
+
   describe('create_room', function() {
-    it('should return error when room name is not specified');
+    it('should return error when room name is not specified', function(done) {
+      const client = io.connect("http://localhost:3000", options);
+      client.on('bubble_error', function(data) {
+        data.should.have.keys('code', 'message');
+        client.disconnect();
+        done();
+      });
+      client.on('room_created', function(data) {
+        throw Error('should not reach');
+      });
+      client.emit('create_room', {
+        // roomName not specified
+      });
+    });
+
     it('should default limit of room to 10');
     it('should return a room_id');
     it('should create a new room');
