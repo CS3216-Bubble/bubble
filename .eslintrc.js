@@ -1,3 +1,7 @@
 module.exports = {
-    "extends": "google"
+  "extends": "google",
+  "rules": {
+    "comma-dangle": 0,
+    "object-curly-spacing": 0,
+  },
 };
