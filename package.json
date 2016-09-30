@@ -27,7 +27,8 @@
     "start": "nodemon src/index.js --exec babel-node",
     "build": "babel src/index.js -d dist",
     "serve": "node dist/index.js",
-    "test": "mocha --compilers js:babel-register --bail --check-leaks test/",
+    "mocha": "mocha --compilers js:babel-register --bail --check-leaks test/",
+    "test": "npm run mocha && npm run lint && npm run flow",
     "test-watch": "mocha --compilers js:babel-register --watch --bail --check-leaks test/",
     "lint": "eslint --ignore-path .gitignore .",
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
