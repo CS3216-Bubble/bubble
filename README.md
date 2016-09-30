@@ -47,8 +47,8 @@ Request payload:
 ```
 {
     user: UserId,
-    room_name: RoomName,
-    user_limit: UserLimit
+    roomName: RoomName,
+    userLimit: UserLimit
 }
 ```
 
@@ -56,7 +56,7 @@ Emits event `room_created` with payload:
 
 ```
 {
-    room_id: RoomId
+    roomId: RoomId
 }
 ```
 
@@ -158,12 +158,12 @@ Emits event `stop_typing` to all other users in room:
 
 ### report_user,
 
-Reports `user_to_report` for bad behavior:
+Reports `userToReport` for bad behavior:
 
 ```
 {
     user: UserId,
-    user_to_report: UserId,
+    userToReport: UserId,
     room: RoomId,
     reason: Reason,
 }
