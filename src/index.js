@@ -1,15 +1,18 @@
 // @flow
 
-var app = require('express')();
-var http = require('http').createServer(app);
-var io = require('socket.io')(http);
+import express from 'express';
+import socketio from 'socket.io';
+import uuid from 'uuid';
+import { createServer } from 'http';
+
+import * as k from './constants';
+
+const app = express();
+const http = createServer(app);
+const io = socketio(http);
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
-});
-
-app.get('/readme', function(req, res) {
-  res.sendFile('README.md', {root: __dirname});
 });
 
 var numUsers = 0;
@@ -23,33 +26,37 @@ const tryJson = data => {
 };
 
 const emitAppError = (socket, code, message) => (
-  socket.emit('bubble_error', {
+  socket.emit(k.APP_ERROR, {
     code,
     message,
   }));
 
-const createRoom = (roomName, userLimit) => ({});
+const roomIdToRoomName : {[roomId:string]: string} = {};
+const roomIdToUserLimit : {[roomId:string]: number} = {};
 
 const onCreateRoom = socket => data => {
-  // socket.broadcast.emit('room_created');
   const { userId, roomName, userLimit = 7 } = tryJson(data);
 
   if (userId) {
   }
 
   if (!roomName) {
-    const message = 'Room name is not specified';
+    const message = 'Room name is not specified.';
     return emitAppError(socket, 1, message);
   }
 
-  createRoom(roomName, userLimit);
-  socket.emit('room_created', { roomId: 1 });
+  const roomId = uuid.v4();
+  roomIdToRoomName[roomId] = roomName;
+  roomIdToUserLimit[roomId] = userLimit;
+  socket.join(roomId, () => {
+    socket.emit('room_created', { roomId: roomId });
+  });
 };
 
 io.on('connection', function(socket) {
   var addedUser = false;
 
-  socket.on('create_room', onCreateRoom(socket));
+  socket.on(k.CREATE_ROOM, onCreateRoom(socket));
 
   socket.on('chat message', function(msg) {
     io.emit('chat message', msg);

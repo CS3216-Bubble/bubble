@@ -2,43 +2,47 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import 'should';
 
+import server from '../'; // eslint-disable-line no-unused-vars
+
 describe('API', function() {
-  let server;
-  let options = {
-    'transports': ['websocket'],
-    'force new connection': true,
-  };
+  let client;
 
   beforeEach(function(done) {
-    // require and runs the server before each test
-    server = require('../').server;
-    done();
+    client = io.connect("http://localhost:3000");
+    client.on('connect', () => done());
   });
 
   afterEach(function(done) {
-    // close the server connection after each test
-    server.close();
+    client.disconnect();
     done();
   });
 
   describe('create_room', function() {
     it('should return error when room name is not specified', function(done) {
-      const client = io.connect("http://localhost:3000", options);
       client.on('bubble_error', function(data) {
         data.should.have.keys('code', 'message');
-        client.disconnect();
         done();
       });
       client.on('room_created', function(data) {
-        throw Error('should not reach');
+        throw Error('room_create event should not be emitted');
       });
       client.emit('create_room', {
         // roomName not specified
       });
     });
 
-    it('should default limit of room to 10');
-    it('should return a room_id');
+    it('should default limit of room to 7');
+
+    it('should return a room_id', function(done) {
+      client.on('room_created', function(data) {
+        // data.should.have.keys('roomId');
+        done();
+      });
+      client.emit('create_room', JSON.stringify({
+        roomName: 'this is my room',
+      }));
+    });
+
     it('should create a new room');
   });
 
