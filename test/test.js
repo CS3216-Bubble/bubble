@@ -2,18 +2,22 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import 'should';
 
-import server from '../'; // eslint-disable-line no-unused-vars
+import { server } from '../'; // eslint-disable-line no-unused-vars
 
 describe('API', function() {
   let client;
 
   beforeEach(function(done) {
-    client = io.connect("http://localhost:3000");
+    server.listen(3000);
+    client = io.connect("http://localhost:3000", {
+      transports: ['websocket'],
+    });
     client.on('connect', () => done());
   });
 
   afterEach(function(done) {
     client.disconnect();
+    server.close();
     done();
   });
 

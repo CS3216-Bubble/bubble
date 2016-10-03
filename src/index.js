@@ -8,8 +8,8 @@ import { createServer } from 'http';
 import * as k from './constants';
 
 const app = express();
-const http = createServer(app);
-const io = socketio(http);
+const server = createServer(app);
+const io = socketio(server);
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -117,4 +117,7 @@ io.on('connection', function(socket) {
   });
 });
 
-exports.server = http.listen(3000);
+export {
+  io,
+  server,
+};
