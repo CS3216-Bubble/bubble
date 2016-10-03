@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import 'should';
 
-import { server } from '../'; // eslint-disable-line no-unused-vars
+import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 
 describe('API', function() {
   let client;
