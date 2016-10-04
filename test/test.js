@@ -1,17 +1,71 @@
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
-import 'should';
+import should from 'should';
 
+import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
+
+const INVALID_ROOM_ID = 'invalidroomid';
+
+/**
+ * Ensures that client does not received specified event.
+ * @param {object} client socket.io client
+ * @param {string} event event that client should not receive
+ */
+function clientShouldNotReceiveEvent(client, event) {
+  client.on(
+    event,
+    () => should.fail(`${event} should not be emitted`));
+}
+
+/**
+ * Ensures that client receives an APP_ERROR event with an error code.
+ * @param {object} client socket.io client
+ * @param {int} errorCode expected error code
+ * @param {function} done mocha done callback
+ */
+function clientShouldReceiveAppError(client, errorCode, done) {
+  client.on(k.APP_ERROR, function(data) {
+    data.should.have.keys('code', 'message');
+    data.code.should.equal(errorCode);
+    done();
+  });
+}
+
+/**
+ * Creates a room that client will be an owner of.
+ * @param {object} client socket.io client
+ * @param {object} opts options to override default room creation params
+ */
+function createRoom(client, opts = {}) {
+  const defaults = {
+    roomName: 'this is my room',
+    roomDescription: 'my room description',
+    userLimit: 2, // optional, defaults to 7
+    categories: ['cat1'],
+  };
+  client.emit(k.CREATE_ROOM, {
+    ...defaults,
+    ...opts
+  });
+}
+
+/**
+ * Creates a socket.io client on default host and port
+ * @return {object} socket.io client
+ */
+function makeClient() {
+  return io.connect("http://localhost:3000", {
+    transports: ['websocket'],
+  });
+}
 
 describe('API', function() {
   let client;
 
   beforeEach(function(done) {
     server.listen(3000);
-    client = io.connect("http://localhost:3000", {
-      transports: ['websocket'],
-    });
+    client = makeClient();
     client.on('connect', () => done());
   });
 
@@ -23,38 +77,69 @@ describe('API', function() {
 
   describe('create_room', function() {
     it('should return error when room name is not specified', function(done) {
-      client.on('bubble_error', function(data) {
-        data.should.have.keys('code', 'message');
-        done();
-      });
-      client.on('room_created', function(data) {
-        throw Error('room_create event should not be emitted');
-      });
-      client.emit('create_room', {
-        // roomName not specified
-      });
+      clientShouldReceiveAppError(client, 1, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_CREATED);
+      client.emit(k.CREATE_ROOM, { /* roomName not specified */ });
     });
 
     it('should default limit of room to 7');
 
     it('should return a room_id', function(done) {
-      client.on('room_created', function(data) {
-        // data.should.have.keys('roomId');
+      client.on(k.ROOM_CREATED, function(data) {
+        data.should.have.keys('roomId');
         done();
       });
-      client.emit('create_room', JSON.stringify({
-        roomName: 'this is my room',
-      }));
+      createRoom(client);
     });
-
-    it('should create a new room');
   });
 
   describe('join_room', function() {
-    it('should return error when room id is not specified');
-    it('should return error when room limit is reached');
+    /* All tests here will have a room created */
+
+    /* store the created roomId so tests can join this room */
+    let roomId = null;
+
+    beforeEach(function(done) {
+      client.on(k.ROOM_CREATED, function(data) {
+        data.should.have.keys('roomId');
+        roomId = data.roomId;
+        done();
+      });
+      createRoom(client);
+    });
+
+    it('should return error when room id is not specified', function(done) {
+      clientShouldReceiveAppError(client, 2, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_JOINED);
+      client.emit(k.JOIN_ROOM, { /* roomId not specified */ });
+    });
+
+    it('should return error when room id cannot be found', function(done) {
+      clientShouldReceiveAppError(client, 3, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_JOINED);
+      client.emit(k.JOIN_ROOM, { roomId: INVALID_ROOM_ID});
+    });
+
+    it('should return error when room limit is reached', function(done) {
+      // the default room has a user limit of 3
+      let client2 = makeClient();
+      let client3 = makeClient();
+      clientShouldNotReceiveEvent(client2, k.ROOM_JOINED);
+      clientShouldReceiveAppError(client3, 4, done);
+      client2.emit(k.JOIN_ROOM, { roomId: roomId });
+      client3.emit(k.JOIN_ROOM, { roomId: roomId });
+    });
+
     it('should return error when user is already in another room');
-    it('should emit room_joined event to all other users in a room');
+
+    it('should emit room_joined event to other users in room', function(done) {
+      let client2 = makeClient();
+      client2.emit(k.JOIN_ROOM, { roomId: roomId });
+      client.on(k.ROOM_JOINED, function(data) {
+        done();
+      });
+    });
+
     it('should update room with new member');
   });
 

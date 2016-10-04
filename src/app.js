@@ -17,28 +17,51 @@ app.get('/', function(req, res) {
 
 var numUsers = 0;
 
-const tryJson = data => {
-  try {
-    return JSON.parse(data);
-  } catch (e) {
-    return {};
-  }
-};
-
 const emitAppError = (socket, code, message) => (
   socket.emit(k.APP_ERROR, {
     code,
     message,
   }));
 
-const roomIdToRoomName : {[roomId:string]: string} = {};
-const roomIdToUserLimit : {[roomId:string]: number} = {};
+/*
+ * room
+ * {
+ *   roomName,
+ *   userLimit,
+ *   roomDescription,
+ *   categories,
+ *   numberOfUsers: 1,
+ * }
+ */
+class Room {
+  roomName: string;
+  userLimit: number;
+  roomDescription: string;
+  categories: string[];
+  numberOfUsers: number;
+  constructor(
+      roomName,
+      userLimit,
+      roomDescription,
+      categories,
+      numberOfUsers: 1) {
+    this.roomName = roomName;
+    this.userLimit = userLimit;
+    this.roomDescription = roomDescription;
+    this.categories = categories;
+    this.numberOfUsers = numberOfUsers;
+  }
+}
+const roomIdToRoom : {[roomId:string]: Room} = {};
 
 const onCreateRoom = socket => data => {
-  const { userId, roomName, userLimit = 7 } = tryJson(data);
-
-  if (userId) {
-  }
+  const {
+    roomName,
+    userLimit = 7,
+    roomDescription = '',
+    categories = [],
+    numberOfUsers = 1,
+  } = data;
 
   if (!roomName) {
     const message = 'Room name is not specified.';
@@ -46,10 +69,43 @@ const onCreateRoom = socket => data => {
   }
 
   const roomId = uuid.v4();
-  roomIdToRoomName[roomId] = roomName;
-  roomIdToUserLimit[roomId] = userLimit;
+  roomIdToRoom[roomId] = new Room(
+    roomName,
+    userLimit,
+    roomDescription,
+    categories,
+    numberOfUsers,
+  );
   socket.join(roomId, () => {
-    socket.emit('room_created', { roomId: roomId });
+    socket.emit(k.ROOM_CREATED, { roomId: roomId });
+  });
+};
+
+const onJoinRoom = socket => data => {
+  const {
+    roomId,
+  } = data;
+
+  if (!roomId) {
+    const message = 'Room id not specified.';
+    return emitAppError(socket, 2, message);
+  }
+
+  if (!Object.keys(roomIdToRoom).includes(roomId)) {
+    const message = `Room ${roomId} cannot be found.`;
+    return emitAppError(socket, 3, message);
+  }
+
+  const room = roomIdToRoom[roomId];
+
+  if (room.numberOfUsers + 1 > room.userLimit) {
+    const message = `Room ${roomId} is at user limit of ${room.userLimit}.`;
+    return emitAppError(socket, 4, message);
+  }
+
+  room.numberOfUsers++;
+  socket.join(room.roomId, () => {
+    socket.to(roomId).emit(k.ROOM_JOINED, {});
   });
 };
 
@@ -57,6 +113,7 @@ io.on('connection', function(socket) {
   var addedUser = false;
 
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
+  socket.on(k.JOIN_ROOM, onJoinRoom(socket));
 
   socket.on('chat message', function(msg) {
     io.emit('chat message', msg);
