@@ -23,16 +23,6 @@ const emitAppError = (socket, code, message) => (
     message,
   }));
 
-/*
- * room
- * {
- *   roomName,
- *   userLimit,
- *   roomDescription,
- *   categories,
- *   numberOfUsers: 1,
- * }
- */
 class Room {
   roomName: string;
   userLimit: number;
