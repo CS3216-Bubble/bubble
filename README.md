@@ -69,7 +69,7 @@ Request payload:
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
 }
 ```
 
@@ -88,7 +88,7 @@ Notes: check if room has capacity for more people to join, is user authorized to
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
 }
 ```
 
@@ -125,7 +125,7 @@ Indicate that user is typing
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
 }
 ```
 
@@ -144,7 +144,7 @@ indicate that user has stopped typing
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
 }
 ```
 
@@ -164,7 +164,7 @@ Reports `userToReport` for bad behavior:
 {
     user: UserId,
     userToReport: UserId,
-    room: RoomId,
+    roomId: RoomId,
     reason: Reason,
 }
 ```
@@ -176,7 +176,7 @@ Show message to all connected users
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
     message: Message,
 }
 ```
@@ -186,7 +186,7 @@ Emits event `add_message` to all other users in room:
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
     message: Message,
 }
 ```
@@ -199,7 +199,7 @@ Show reaction to all connected users
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
     reaction: Reaction,
 }
 ```
@@ -209,7 +209,7 @@ Emits event `add_reaction` to all other users in room:
 ```
 {
     user: UserId,
-    room: RoomId,
+    roomId: RoomId,
     reaction: Reaction,
 }
 ```
