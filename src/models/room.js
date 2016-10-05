@@ -1,21 +1,43 @@
 class Room {
+  roomId: string;
   roomName: string;
   userLimit: number;
   roomDescription: string;
   categories: string[];
-  numberOfUsers: number;
+  sockets: string[];
   constructor(
+      roomId,
       roomName,
       userLimit,
       roomDescription,
       categories,
-      numberOfUsers: 1) {
+      sockets:[]) {
+    this.roomId = roomId;
     this.roomName = roomName;
     this.userLimit = userLimit;
     this.roomDescription = roomDescription;
     this.categories = categories;
-    this.numberOfUsers = numberOfUsers;
+    this.sockets = sockets;
   }
+
+  get numberOfUsers() {
+    return this.sockets.length;
+  }
+
+  isUserHere(socket) {
+    this.sockets.filter(s => s.id === socket.id).length > 0;
+  }
+
+  addUser(socket) {
+    this.sockets = this.sockets.concat(socket);
+  }
+
+  removeUser(socket) {
+    this.sockets = this.sockets.filter(
+      s => s.id !== socket.id
+    )
+  }
+
 }
 
 export default Room;

@@ -26,13 +26,35 @@ const emitAppError = (socket, code, message) => (
 
 const roomIdToRoom : {[roomId:string]: Room} = {};
 
+/**
+ * Checks that `roomId` is provided in `data`, and that `roomId` exists
+ * Calls nextFn with `room` added to `data`.
+ *
+ * @param {function} nextFn next function to call if room exists
+ * @param {object} socket socket.io socket client
+ * @param {object} data data sent by socket client
+ */
+const ensureRoomExists = nextFn => socket => data => {
+  const { roomId } = data;
+  if (!roomId) {
+    const message = 'Room id not specified.';
+    return emitAppError(socket, 2, message);
+  }
+
+  if (!Object.keys(roomIdToRoom).includes(roomId)) {
+    const message = `Room ${roomId} cannot be found.`;
+    return emitAppError(socket, 3, message);
+  }
+
+  return nextFn(socket)({...data, room: roomIdToRoom[roomId]});
+}
+
 const onCreateRoom = socket => data => {
   const {
     roomName,
     userLimit = 7,
     roomDescription = '',
     categories = [],
-    numberOfUsers = 1,
   } = data;
 
   if (!roomName) {
@@ -42,72 +64,79 @@ const onCreateRoom = socket => data => {
 
   const roomId = uuid.v4();
   roomIdToRoom[roomId] = new Room(
+    roomId,
     roomName,
     userLimit,
     roomDescription,
     categories,
-    numberOfUsers,
+    [socket],
   );
   socket.join(roomId, () => {
     socket.emit(k.ROOM_CREATED, { roomId: roomId });
   });
 };
 
-const onJoinRoom = socket => data => {
-  const {
-    roomId,
-  } = data;
-
-  if (!roomId) {
-    const message = 'Room id not specified.';
-    return emitAppError(socket, 2, message);
-  }
-
-  if (!Object.keys(roomIdToRoom).includes(roomId)) {
-    const message = `Room ${roomId} cannot be found.`;
-    return emitAppError(socket, 3, message);
-  }
-
-  const room = roomIdToRoom[roomId];
+const onJoinRoom = ensureRoomExists(socket => data => {
+  const room = data.room;
 
   if (room.numberOfUsers + 1 > room.userLimit) {
-    const message = `Room ${roomId} is at user limit of ${room.userLimit}.`;
+    const message = `Room ${room.roomId} is at user limit of ${room.userLimit}.`;
     return emitAppError(socket, 4, message);
   }
 
-  room.numberOfUsers++;
+  room.addUser(socket);
   socket.join(room.roomId, () => {
-    socket.to(roomId).emit(k.ROOM_JOINED, {});
+    socket.to(room.roomId).emit(k.ROOM_JOINED, {});
   });
-};
+});
 
-const onExitRoom = socket => data => {
-  const {
-    roomId,
-  } = data;
+const onExitRoom = ensureRoomExists(socket => data => {
+  const room = data.room;
 
-  if (!roomId) {
-    const message = 'Room id not specified.';
-    return emitAppError(socket, 2, message);
-  }
-
-  if (!Object.keys(roomIdToRoom).includes(roomId)) {
-    const message = `Room ${roomId} cannot be found.`;
-    return emitAppError(socket, 3, message);
-  }
-
-  const room = roomIdToRoom[roomId];
-
-  if (Object.keys(socket.rooms).includes(roomId)) {
-    const message = `User is not in room ${roomId}.`;
+  if (!Object.keys(socket.rooms).includes(room.roomId)) {
+    const message = `User is not in room ${room.roomId}.`;
     return emitAppError(socket, 5, message);
   }
 
-  room.numberOfUsers--;
+  room.removeUser(socket);
   socket.leave(room.roomId, () => {
-    socket.to(roomId).emit(k.ROOM_EXITED, {});
+    socket.to(room.roomId).emit(k.ROOM_EXITED, {});
   });
-}
+});
+
+const onTyping = ensureRoomExists(socket => data => {
+  const room = data.room;
+
+  if (!Object.keys(socket.rooms).includes(room.roomId)) {
+    const message = `User is not in room ${room.roomId}.`;
+    return emitAppError(socket, 5, message);
+  }
+
+  socket.to(room.roomId).emit(k.TYPING, {});
+})
+
+const onStopTyping = ensureRoomExists(socket => data => {
+  const room = data.room;
+
+  if (!Object.keys(socket.rooms).includes(room.roomId)) {
+    const message = `User is not in room ${room.roomId}.`;
+    return emitAppError(socket, 5, message);
+  }
+
+  socket.to(room.roomId).emit(k.STOP_TYPING, {});
+})
+
+const onAddMessage = ensureRoomExists(socket => data => {
+  const room = data.room;
+  const { message } = data;
+
+  if (!message) {
+    const message = `No message specified.`;
+    return emitAppError(socket, 6, message);
+  }
+
+  socket.to(room.roomId).emit(k.ADD_MESSAGE, { message });
+})
 
 io.on('connection', function(socket) {
   var addedUser = false;
@@ -115,6 +144,10 @@ io.on('connection', function(socket) {
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
+  // when the client emits 'typing', we broadcast it to others
+  socket.on(k.TYPING, onTyping(socket));
+  socket.on(k.STOP_TYPING, onStopTyping(socket));
+  socket.on(k.ADD_MESSAGE, onAddMessage(socket));
 
   socket.on('chat message', function(msg) {
     io.emit('chat message', msg);
@@ -126,38 +159,6 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('new message', {
       username: socket.username,
       message: data
-    });
-  });
-
-  // when the client emits 'add user', this listens and executes
-  socket.on('add user', function(username) {
-    if (addedUser) return;
-
-    // we store the username in the socket session for this client
-    socket.username = username;
-    ++numUsers;
-    addedUser = true;
-    socket.emit('login', {
-      numUsers: numUsers
-    });
-    // echo globally (all clients) that a person has connected
-    socket.broadcast.emit('user joined', {
-      username: socket.username,
-      numUsers: numUsers
-    });
-  });
-
-  // when the client emits 'typing', we broadcast it to others
-  socket.on('typing', function() {
-    socket.broadcast.emit('typing', {
-      username: socket.username
-    });
-  });
-
-  // when the client emits 'stop typing', we broadcast it to others
-  socket.on('stop typing', function() {
-    socket.broadcast.emit('stop typing', {
-      username: socket.username
     });
   });
 
