@@ -144,8 +144,45 @@ describe('API', function() {
   });
 
   describe('exit_room', function() {
-    it('should return error when room id is not specified');
-    it('should emit room_exited event to all other users in a room');
+    /* All tests here will have a room created */
+
+    /* store the created roomId so tests can join this room */
+    let roomId = null;
+
+    beforeEach(function(done) {
+      client.on(k.ROOM_CREATED, function(data) {
+        data.should.have.keys('roomId');
+        roomId = data.roomId;
+        done();
+      });
+      createRoom(client);
+    });
+
+    it('should return error when room id is not specified', function(done) {
+      clientShouldReceiveAppError(client, 2, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_EXITED);
+      client.emit(k.EXIT_ROOM, { /* roomId not specified */ });
+    });
+
+    it('should return error when room id cannot be found', function(done) {
+      clientShouldReceiveAppError(client, 3, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_EXITED);
+      client.emit(k.EXIT_ROOM, { roomId: INVALID_ROOM_ID});
+    });
+
+    it.only('should return error if user is not in room', function(done) {
+      clientShouldReceiveAppError(client, 5, done);
+      clientShouldNotReceiveEvent(client, k.ROOM_EXITED);
+      client.emit(k.EXIT_ROOM, { roomId });
+    });
+
+    it.only('should emit room_exited event to users in a room', function(done) {
+      client.on(k.ROOM_EXITED, data => done());
+      let client2 = makeClient();
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client2.emit(k.EXIT_ROOM, { roomId });
+    });
+
     it('should update room member list');
   });
 

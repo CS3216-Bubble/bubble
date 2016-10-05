@@ -81,11 +81,40 @@ const onJoinRoom = socket => data => {
   });
 };
 
+const onExitRoom = socket => data => {
+  const {
+    roomId,
+  } = data;
+
+  if (!roomId) {
+    const message = 'Room id not specified.';
+    return emitAppError(socket, 2, message);
+  }
+
+  if (!Object.keys(roomIdToRoom).includes(roomId)) {
+    const message = `Room ${roomId} cannot be found.`;
+    return emitAppError(socket, 3, message);
+  }
+
+  const room = roomIdToRoom[roomId];
+
+  if (Object.keys(socket.rooms).includes(roomId)) {
+    const message = `User is not in room ${roomId}.`;
+    return emitAppError(socket, 5, message);
+  }
+
+  room.numberOfUsers--;
+  socket.leave(room.roomId, () => {
+    socket.to(roomId).emit(k.ROOM_EXITED, {});
+  });
+}
+
 io.on('connection', function(socket) {
   var addedUser = false;
 
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
+  socket.on(k.EXIT_ROOM, onExitRoom(socket));
 
   socket.on('chat message', function(msg) {
     io.emit('chat message', msg);

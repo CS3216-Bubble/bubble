@@ -11,3 +11,4 @@ export const ADD_REACTION = 'add_reaction';
 
 export const ROOM_CREATED = 'room_created';
 export const ROOM_JOINED = 'room_joined';
+export const ROOM_EXITED = 'room_exited';
