@@ -87,7 +87,9 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
   room.addUser(socket);
   socket.join(room.roomId, () => {
-    socket.to(room.roomId).emit(k.ROOM_JOINED, {});
+    socket.to(room.roomId).emit(k.ROOM_JOINED, {
+      userId: socket.id.slice(2),
+    });
   });
 });
 
@@ -101,7 +103,9 @@ const onExitRoom = ensureRoomExists(socket => data => {
 
   room.removeUser(socket);
   socket.leave(room.roomId, () => {
-    socket.to(room.roomId).emit(k.ROOM_EXITED, {});
+    socket.to(room.roomId).emit(k.ROOM_EXITED, {
+      userId: socket.id.slice(2),
+    });
   });
 });
 
@@ -113,8 +117,10 @@ const onTyping = ensureRoomExists(socket => data => {
     return emitAppError(socket, 5, message);
   }
 
-  socket.to(room.roomId).emit(k.TYPING, {});
-})
+  socket.to(room.roomId).emit(k.TYPING, {
+    userId: socket.id.slice(2),
+  });
+});
 
 const onStopTyping = ensureRoomExists(socket => data => {
   const room = data.room;
@@ -124,8 +130,10 @@ const onStopTyping = ensureRoomExists(socket => data => {
     return emitAppError(socket, 5, message);
   }
 
-  socket.to(room.roomId).emit(k.STOP_TYPING, {});
-})
+  socket.to(room.roomId).emit(k.STOP_TYPING, {
+    userId: socket.id.slice(2),
+  });
+});
 
 const onAddMessage = ensureRoomExists(socket => data => {
   const room = data.room;
@@ -136,8 +144,11 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, 6, message);
   }
 
-  socket.to(room.roomId).emit(k.ADD_MESSAGE, { message });
-})
+  socket.to(room.roomId).emit(k.ADD_MESSAGE, {
+    userId: socket.id.slice(2),
+    message,
+  });
+});
 
 io.on('connection', function(socket) {
   var addedUser = false;

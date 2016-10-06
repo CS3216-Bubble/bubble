@@ -158,10 +158,12 @@ describe('API', function() {
 
       it('should emit room_joined event to other users in room', function(done) {
         const client2 = makeClient();
-        client2.emit(k.JOIN_ROOM, { roomId: roomId });
         client.on(k.ROOM_JOINED, function(data) {
+          data.should.have.keys('userId');
+          data.userId.should.equal(client2.id);
           done();
         });
+        client2.emit(k.JOIN_ROOM, { roomId: roomId });
       });
 
       it('should update room with new member');
@@ -182,8 +184,12 @@ describe('API', function() {
       });
 
       it('should emit room_exited event to users in a room', function(done) {
-        client.on(k.ROOM_EXITED, data => done());
         const client2 = makeClient();
+        client.on(k.ROOM_EXITED, data => {
+          data.should.have.keys('userId');
+          data.userId.should.equal(client2.id);
+          done();
+        });
         client2.emit(k.JOIN_ROOM, { roomId });
         client2.emit(k.EXIT_ROOM, { roomId });
       });
@@ -211,24 +217,32 @@ describe('API', function() {
 
       it('should emit typing event to all other users in a room', function(done) {
         const client2 = makeClient();
-        client2.emit(k.JOIN_ROOM, { roomId })
+        client2.emit(k.JOIN_ROOM, { roomId });
         client2.emit(k.TYPING, { roomId });
-        client.on(k.TYPING, data => done());
+        client.on(k.TYPING, data => {
+          data.should.have.keys('userId');
+          data.userId.should.equal(client2.id);
+          done();
+        });
       });
     });
 
     describe('stop_typing', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.STOP_TYPING, k.STOP_TYPING, done))
+        done => errorWithoutRoomId(client, k.STOP_TYPING, k.STOP_TYPING, done));
 
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.STOP_TYPING, k.STOP_TYPING, done));
 
       it('should emit stop_typing event to all other users in a room', function(done) {
         const client2 = makeClient();
-        client2.emit(k.JOIN_ROOM, { roomId })
+        client2.emit(k.JOIN_ROOM, { roomId });
         client2.emit(k.STOP_TYPING, { roomId });
-        client.on(k.STOP_TYPING, data => done());
+        client.on(k.STOP_TYPING, data => {
+          data.should.have.keys('userId');
+          data.userId.should.equal(client2.id);
+          done();
+        });
       });
     });
 
@@ -241,7 +255,7 @@ describe('API', function() {
 
     describe('add_message', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.ADD_MESSAGE, k.ADD_MESSAGE, done))
+        done => errorWithoutRoomId(client, k.ADD_MESSAGE, k.ADD_MESSAGE, done));
 
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.ADD_MESSAGE, k.ADD_MESSAGE, done));
@@ -261,11 +275,12 @@ describe('API', function() {
           message: 'Hello',
         });
         client.on(k.ADD_MESSAGE, data => {
-          data.should.have.keys('message');
+          data.should.have.keys('userId', 'message');
+          data.userId.should.equal(client2.id);
           data.message.should.equal('Hello');
           client2.disconnect();
           done();
-        })
+        });
       });
     });
 
