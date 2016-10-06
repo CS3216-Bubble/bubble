@@ -168,6 +168,7 @@ describe('API', function() {
       });
 
       it('should return error when user is already in another room');
+      it('should return not do anything if user is already in room');
 
       it('should emit room_joined event to other users in room', function(done) {
         client2 = makeClient();
