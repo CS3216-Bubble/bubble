@@ -25,7 +25,7 @@ class Room {
   }
 
   isUserHere(socket) {
-    this.sockets.filter(s => s.id === socket.id).length > 0;
+    return this.sockets.filter(s => s.id === socket.id).length > 0;
   }
 
   addUser(socket) {
@@ -35,7 +35,7 @@ class Room {
   removeUser(socket) {
     this.sockets = this.sockets.filter(
       s => s.id !== socket.id
-    )
+    );
   }
 
 }

@@ -70,9 +70,9 @@ function makeClient() {
  * @param {function} done mocha done callback
  */
 function errorWithoutRoomId(client, eventToEmit, shouldNot, done) {
-    clientShouldReceiveAppError(client, 2, done);
-    clientShouldNotReceiveEvent(client, shouldNot);
-    client.emit(eventToEmit, { /* roomId not specified */ });
+  clientShouldReceiveAppError(client, 2, done);
+  clientShouldNotReceiveEvent(client, shouldNot);
+  client.emit(eventToEmit, { /* roomId not specified */ });
 }
 
 /**
@@ -85,9 +85,9 @@ function errorWithoutRoomId(client, eventToEmit, shouldNot, done) {
  * @param {function} done mocha done callback
  */
 function errorRoomIdNotFound(client, eventToEmit, shouldNot, done) {
-    clientShouldReceiveAppError(client, 3, done);
-    clientShouldNotReceiveEvent(client, shouldNot);
-    client.emit(eventToEmit, { roomId: INVALID_ROOM_ID });
+  clientShouldReceiveAppError(client, 3, done);
+  clientShouldNotReceiveEvent(client, shouldNot);
+  client.emit(eventToEmit, { roomId: INVALID_ROOM_ID });
 }
 
 describe('API', function() {
@@ -135,11 +135,11 @@ describe('API', function() {
         done();
       });
       createRoom(client);
-    })
+    });
 
     describe('join_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.JOIN_ROOM, k.ROOM_JOINED, done))
+        done => errorWithoutRoomId(client, k.JOIN_ROOM, k.ROOM_JOINED, done));
 
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.JOIN_ROOM, k.ROOM_JOINED, done));
@@ -169,7 +169,7 @@ describe('API', function() {
 
     describe('exit_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.EXIT_ROOM, k.ROOM_EXITED, done))
+        done => errorWithoutRoomId(client, k.EXIT_ROOM, k.ROOM_EXITED, done));
 
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.EXIT_ROOM, k.ROOM_EXITED, done));
@@ -197,7 +197,7 @@ describe('API', function() {
 
     describe('typing', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.TYPING, k.TYPING, done))
+        done => errorWithoutRoomId(client, k.TYPING, k.TYPING, done));
 
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.TYPING, k.TYPING, done));

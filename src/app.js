@@ -33,6 +33,7 @@ const roomIdToRoom : {[roomId:string]: Room} = {};
  * @param {function} nextFn next function to call if room exists
  * @param {object} socket socket.io socket client
  * @param {object} data data sent by socket client
+ * @return {null} emits errors when roomId is not provided or does not exist
  */
 const ensureRoomExists = nextFn => socket => data => {
   const { roomId } = data;
@@ -47,7 +48,7 @@ const ensureRoomExists = nextFn => socket => data => {
   }
 
   return nextFn(socket)({...data, room: roomIdToRoom[roomId]});
-}
+};
 
 const onCreateRoom = socket => data => {
   const {
