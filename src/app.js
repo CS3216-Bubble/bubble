@@ -161,19 +161,6 @@ io.on('connection', function(socket) {
   socket.on(k.STOP_TYPING, onStopTyping(socket));
   socket.on(k.ADD_MESSAGE, onAddMessage(socket));
 
-  socket.on('chat message', function(msg) {
-    io.emit('chat message', msg);
-  });
-
-  // when the client emits 'new message', this listens and executes
-  socket.on('new message', function(data) {
-    // we tell the client to execute 'new message'
-    socket.broadcast.emit('new message', {
-      username: socket.username,
-      message: data
-    });
-  });
-
   // when the user disconnects.. perform this
   socket.on('disconnect', function() {
     if (addedUser) {
