@@ -5,6 +5,7 @@ class Room {
   roomDescription: string;
   categories: string[];
   sockets: string[];
+  lastActive: Date;
   constructor(
       roomId,
       roomName,
@@ -18,6 +19,7 @@ class Room {
     this.roomDescription = roomDescription;
     this.categories = categories;
     this.sockets = sockets;
+    this.lastActive = new Date();
   }
 
   get numberOfUsers() {
@@ -30,12 +32,18 @@ class Room {
 
   addUser(socket) {
     this.sockets = this.sockets.concat(socket);
+    // should we update lastActive here?
   }
 
   removeUser(socket) {
     this.sockets = this.sockets.filter(
       s => s.id !== socket.id
     );
+    // should we update lastActive here?
+  }
+
+  touch() {
+    this.lastActive = new Date();
   }
 
   get toJson() {
@@ -46,6 +54,7 @@ class Room {
       roomDescription: this.roomDescription,
       categories: this.categories,
       numberOfUsers: this.numberOfUsers,
+      lastActive: this.lastActive.toISOString(),
     };
   }
 

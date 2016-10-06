@@ -158,6 +158,8 @@ const onListRooms = socket => data => {
     .map(k => roomIdToRoom[k])
     .filter(r => r.numberOfUsers > 0)
     .map(r => r.toJson);
+
+  rooms.sort((a, b) => a - b);
   return socket.emit(k.LIST_ROOMS, rooms);
 };
 

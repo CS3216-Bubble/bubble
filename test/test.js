@@ -222,13 +222,23 @@ describe('API', function() {
           data.length.should.equal(1);
           data[0].should.have.keys(
             'roomId', 'roomName', 'userLimit', 'roomDescription',
-            'categories', 'numberOfUsers',
+            'categories', 'numberOfUsers', 'lastActive',
           );
           done();
         });
       });
 
-      it('should return a list of rooms ordered by last activity');
+      it('should return a list of rooms ordered by last activity', function(done) {
+        // first create another room that has a newer lastActive
+        createRoom(client);
+        client.emit(k.LIST_ROOMS);
+        client.on(k.LIST_ROOMS, data => {
+          data.should.be.Array();
+          data.length.should.equal(2);
+          data[0].lastActive.should.be.below(data[1].lastActive);
+          done();
+        });
+      });
     });
 
     describe('typing', function() {
