@@ -38,6 +38,17 @@ class Room {
     );
   }
 
+  get toJson() {
+    return {
+      roomId: this.roomId,
+      roomName: this.roomName,
+      userLimit: this.userLimit,
+      roomDescription: this.roomDescription,
+      categories: this.categories,
+      numberOfUsers: this.numberOfUsers,
+    };
+  }
+
 }
 
 export default Room;

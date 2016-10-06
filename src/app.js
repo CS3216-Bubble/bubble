@@ -73,6 +73,7 @@ const onCreateRoom = socket => data => {
     categories,
     [socket],
   );
+
   socket.join(roomId, () => {
     socket.emit(k.ROOM_CREATED, { roomId: roomId });
   });
@@ -103,6 +104,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
   }
 
   room.removeUser(socket);
+
   socket.leave(room.roomId, () => {
     socket.to(room.roomId).emit(k.ROOM_EXITED, {
       userId: socket.id.slice(2),
@@ -151,29 +153,38 @@ const onAddMessage = ensureRoomExists(socket => data => {
   });
 });
 
-io.on('connection', function(socket) {
-  var addedUser = false;
+const onListRooms = socket => data => {
+  const rooms = Object.keys(roomIdToRoom)
+    .map(k => roomIdToRoom[k])
+    .filter(r => r.numberOfUsers > 0)
+    .map(r => r.toJson);
+  return socket.emit(k.LIST_ROOMS, rooms);
+};
 
+const onDisconnect = socket => data => {
+  Object.keys(roomIdToRoom)
+    .map(roomId => roomIdToRoom[roomId])
+    .forEach(room => {
+      // remove user from rooms that user is in
+      if (room.isUserHere(socket)) {
+        room.removeUser(socket);
+        // and notify all other users in the room
+        socket.to(room.roomId).emit(k.ROOM_EXITED, {
+          userId: socket.id.slice(2),
+        });
+      }
+    });
+};
+
+io.on('connection', function(socket) {
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
-  // when the client emits 'typing', we broadcast it to others
   socket.on(k.TYPING, onTyping(socket));
   socket.on(k.STOP_TYPING, onStopTyping(socket));
   socket.on(k.ADD_MESSAGE, onAddMessage(socket));
-
-  // when the user disconnects.. perform this
-  socket.on('disconnect', function() {
-    if (addedUser) {
-      --numUsers;
-
-      // echo globally that this client has left
-      socket.broadcast.emit('user left', {
-        username: socket.username,
-        numUsers: numUsers
-      });
-    }
-  });
+  socket.on(k.LIST_ROOMS, onListRooms(socket));
+  socket.on(k.DISCONNECT, onDisconnect(socket));
 });
 
 export {

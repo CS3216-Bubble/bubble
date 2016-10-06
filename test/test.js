@@ -176,7 +176,7 @@ describe('API', function() {
           data.userId.should.equal(client2.id);
           done();
         });
-        client2.emit(k.JOIN_ROOM, { roomId: roomId });
+        client2.emit(k.JOIN_ROOM, { roomId });
       });
 
       it('should update room with new member');
@@ -212,6 +212,23 @@ describe('API', function() {
 
     describe('view_room', function() {
       it('TODO');
+    });
+
+    describe('list_rooms', function() {
+      it('should return a list of all rooms', function(done) {
+        client.emit(k.LIST_ROOMS);
+        client.on(k.LIST_ROOMS, data => {
+          data.should.be.Array();
+          data.length.should.equal(1);
+          data[0].should.have.keys(
+            'roomId', 'roomName', 'userLimit', 'roomDescription',
+            'categories', 'numberOfUsers',
+          );
+          done();
+        });
+      });
+
+      it('should return a list of rooms ordered by last activity');
     });
 
     describe('typing', function() {
@@ -301,6 +318,24 @@ describe('API', function() {
       it('should return error when room id is not specified');
       it('should return error when message is not specified');
       it('should emit add_reaction event to all other users in a room');
+    });
+
+    describe('disconnect', function() {
+      it('should emit room_exit to other users in room', function(done) {
+        client2 = makeClient();
+
+        client.on(k.ROOM_EXITED, data => {
+          done();
+        });
+
+        client.on(k.ROOM_JOINED, data => {
+          data.should.have.keys('userId');
+          data.userId.should.equal(client2.id);
+          client2.disconnect();
+        });
+
+        client2.emit(k.JOIN_ROOM, { roomId });
+      });
     });
   });
 });
