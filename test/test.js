@@ -148,7 +148,7 @@ describe('API', function() {
         client3.disconnect();
       }
       done();
-    })
+    });
 
     describe('join_room', function() {
       it('should return error when room id is not specified',
