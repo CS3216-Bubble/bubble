@@ -5,7 +5,7 @@
     <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font: 13px Helvetica, Arial; }
-form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+form { background: #000; padding: 3px; width: 100%; }
 form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
 form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
 #messages { list-style-type: none; margin: 0; padding: 0; }
@@ -14,22 +14,84 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
     </style>
   </head>
   <body>
+    <form id="list" action="">
+      <button>list</button>
+    </form>
+
+    <form id="create" action="">
+      <input id="roomname" autocomplete="off" />
+      <button>create</button>
+    </form>
+
+    <form id="join" action="">
+      <input id="joinroomid" autocomplete="off" />
+      <button>join</button>
+    </form>
+
     <ul id="messages"></ul>
-    <form action="">
+    <form id="send" action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-  var socket = io();
-    $('form').submit(function(){
-        socket.emit('chat message', $('#m').val());
+      <script>
+      var roomId;
+
+      var socket = io();
+
+      socket.on('list_rooms', function(msg) {
+        console.log('listing rooms:');
+        console.log(msg)
+      })
+
+      socket.on('room_created', function(msg){
+        console.log(`room created ${msg.roomId}`);
+        roomId = msg.roomId;
+      });
+
+      socket.on('room_joined', function(msg){
+        console.log(`user ${msg.userId} joined this room`);
+      });
+
+      socket.on('add_message', function(msg) {
+        console.log(`user ${msg.userId} said "${msg.message}"`);
+        $('#messages').append(
+            `<li>${msg.userId}: "${msg.message}"</li>`
+        )
+      })
+
+      $('form#list').submit(function() {
+        socket.emit('list_rooms');
+        return false;
+      })
+
+      $('form#create').submit(function(){
+        socket.emit('create_room', $('#roomname').val());
+        socket.emit('create_room', {
+          roomName: $('#roomname').val(),
+          roomDescription: 'description',
+        });
+        return false;
+      });
+
+      $('form#join').submit(function(){
+        socket.emit('join_room', {
+          roomId: $('#joinroomid').val(),
+        });
+        return false;
+      });
+
+      $('form#send').submit(function(){
+        socket.emit('add_message', {
+          roomId,
+          message: $('#m').val(),
+        });
+        $('#messages').append(
+            `<li>${msg.userId}: "${msg.message}"</li>`
+        )
         $('#m').val('');
         return false;
       });
-  socket.on('chat message', function(msg){
-      $('#messages').append($('<li>').text(msg));
-    });
-    </script>
+      </script>
   </body>
 </html>
