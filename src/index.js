@@ -1,6 +1,4 @@
 import { server } from './app';
-import winston from 'winston';
-
-winston.add(winston.transports.File, { filename: 'debug.log' });
+import 'logging';
 
 export default server.listen(3000);

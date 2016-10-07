@@ -3,11 +3,11 @@
 import express from 'express';
 import socketio from 'socket.io';
 import uuid from 'uuid';
-import winston from 'winston';
 import { createServer } from 'http';
 
 import * as k from './constants';
 import Room from './models/room';
+import logger from './logging';
 
 const app = express();
 const server = createServer(app);
@@ -18,7 +18,7 @@ app.get('/', function(req, res) {
 });
 
 const emitAppError = (socket, code, message) => {
-  winston.warn(k.APP_ERROR, { code, message });
+  logger.warn(k.APP_ERROR, { code, message });
   socket.emit(k.APP_ERROR, {
     code,
     message,
