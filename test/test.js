@@ -422,5 +422,25 @@ describe('API', function() {
         client2.emit(k.JOIN_ROOM, { roomId });
       });
     });
+
+    describe('change_name', function() {
+      it('should return error when newName is not specified', function(done) {
+        clientShouldReceiveAppError(client, 9, done);
+        client.emit(k.CHANGE_NAME, { /* roomName not specified */ });
+      })
+
+      it('should emit change_name event to all users in room', function(done) {
+        const newName = 'client 2 name';
+        client2 = makeClient();
+        client2.emit(k.JOIN_ROOM, { roomId });
+        client2.emit(k.CHANGE_NAME, { newName });
+        client.on(k.CHANGE_NAME, data => {
+          data.should.have.keys('userId', 'newName')
+          data.userId.should.equal(client2.id);
+          data.newName.should.equal(newName);
+          done();
+        });
+      });
+    })
   });
 });
