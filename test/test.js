@@ -168,7 +168,11 @@ describe('API', function() {
       });
 
       it('should return error when user is already in another room');
-      it('should return not do anything if user is already in room');
+      it('should return error if user is already in room', function(done) {
+        clientShouldNotReceiveEvent(client, k.ROOM_JOINED);
+        clientShouldReceiveAppError(client, 7, done);
+        client.emit(k.JOIN_ROOM, { roomId });
+      });
 
       it('should emit room_joined event to other users in room', function(done) {
         client2 = makeClient();

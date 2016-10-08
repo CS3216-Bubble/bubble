@@ -82,12 +82,20 @@ const onCreateRoom = socket => data => {
 const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
+  // ensures user is not already in the room
+  if (room.isUserHere(socket)) {
+    const message = `User ${socket.id} is already in room ${room.roomId}`;
+    return emitAppError(socket, 7, message);
+  }
+
+  // ensures that we are under the user limit for the room
   if (room.numberOfUsers + 1 > room.userLimit) {
     const message = `Room ${room.roomId} is at user limit of ${room.userLimit}.`;
     return emitAppError(socket, 4, message);
   }
 
   room.addUser(socket);
+
   socket.join(room.roomId, () => {
     socket.to(room.roomId).emit(k.ROOM_JOINED, {
       userId: socket.id.slice(2),
