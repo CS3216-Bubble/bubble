@@ -94,6 +94,7 @@ function errorRoomIdNotFound(client, event, done) {
 }
 
 describe('API', function() {
+  this.timeout(3000);
   /* All tests here will have a room created */
   let client;
   /* store the created roomId so tests can join this room */
