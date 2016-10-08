@@ -122,7 +122,7 @@ describe('API', function() {
 
     it('should default limit of room to 7');
 
-    it('should return a room_id', function(done) {
+    it('should return room information', function(done) {
       client.on(k.CREATE_ROOM, function(room) {
         room.should.have.keys(...ROOM_KEYS);
         done();
