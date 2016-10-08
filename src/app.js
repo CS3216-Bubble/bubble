@@ -98,6 +98,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
   socket.join(room.roomId, () => {
     socket.to(room.roomId).emit(k.JOIN_ROOM, {
+      roomId: room.roomId,
       userId: socket.id,
     });
   });
@@ -115,6 +116,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
 
   socket.leave(room.roomId, () => {
     socket.to(room.roomId).emit(k.EXIT_ROOM, {
+      roomId: room.roomId,
       userId: socket.id,
     });
   });
@@ -129,6 +131,7 @@ const onTyping = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.TYPING, {
+    roomId: room.roomId,
     userId: socket.id,
   });
 });
@@ -142,6 +145,7 @@ const onStopTyping = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.STOP_TYPING, {
+    roomId: room.roomId,
     userId: socket.id,
   });
 });
@@ -161,6 +165,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.ADD_MESSAGE, {
+    roomId: room.roomId,
     userId: socket.id,
     message,
   });

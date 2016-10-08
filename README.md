@@ -26,18 +26,17 @@ We can then then user id from request.user via socket.request.
 The spec describes our websocket API that our server exposes.
 Each header is an event name, and the payload is data that clients can send.
 
-Payload *must* be sent as a string, for the purposes of this spec,
-they are displayed as JSON structures.
-
 ```
 UserId : String
 UserName : String
 RoomId : String
 RoomName : String
+RoomDescription: String
 UserLimit : Integer
 Reason : String
 Message : String
 Reaction : Integer
+Categories : String[]
 ```
 
 ### create_room
@@ -48,11 +47,13 @@ Request payload:
 {
     user: UserId,
     roomName: RoomName,
+    roomDescription: RoomDescription,
     userLimit: UserLimit
+    categories: Categories
 }
 ```
 
-Emits event `room_created` with payload:
+Emits event `create_room` with payload:
 
 ```
 {
@@ -68,15 +69,16 @@ Request payload:
 
 ```
 {
-    user: UserId,
     roomId: RoomId,
+    user: UserId,
 }
 ```
 
-Emits event `room_joined` to all users connected to room with payload:
+Emits event `join_room` to all users connected to room with payload:
 
 ```
 {
+    roomId: RoomId,
     user: UserId,
 }
 ```
@@ -87,15 +89,16 @@ Notes: check if room has capacity for more people to join, is user authorized to
 
 ```
 {
-    user: UserId,
     roomId: RoomId,
+    user: UserId,
 }
 ```
 
-Emits event `room_exited` to all users connected to room:
+Emits event `exit_room` to all users connected to room:
 
 ```
 {
+    roomId: RoomId,
     user: UserId,
 }
 ```
@@ -124,8 +127,8 @@ Indicate that user is typing
 
 ```
 {
-    user: UserId,
     roomId: RoomId,
+    user: UserId,
 }
 ```
 
@@ -133,6 +136,7 @@ Emits event `typing` to all other users in room:
 
 ```
 {
+    roomId: RoomId,
     user: UserId,
 }
 ```
@@ -143,8 +147,8 @@ indicate that user has stopped typing
 
 ```
 {
-    user: UserId,
     roomId: RoomId,
+    user: UserId,
 }
 ```
 
@@ -152,6 +156,7 @@ Emits event `stop_typing` to all other users in room:
 
 ```
 {
+    roomId: RoomId,
     user: UserId,
 }
 ```
@@ -175,8 +180,8 @@ Show message to all connected users
 
 ```
 {
-    user: UserId,
     roomId: RoomId,
+    user: UserId,
     message: Message,
 }
 ```
@@ -218,9 +223,9 @@ Emits event `add_reaction` to all other users in room:
 
 Websocket events that the server will emit to clients.
 
-- `room_created`
-- `room_joined`
-- `room_exited`
+- `create_room`
+- `join_room`
+- `exit_room`
 - `typing`
 - `stop_typing`
 - `add_message`
