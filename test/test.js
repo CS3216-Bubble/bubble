@@ -384,6 +384,19 @@ describe('API', function() {
           done();
         });
       });
+
+      it('should update the room lastActive', function(done) {
+        let originalLastActive = createdRoom.lastActive;
+        client.on(k.VIEW_ROOM, room => {
+          room.lastActive.should.not.equal(originalLastActive);
+          done();
+        });
+        client.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        })
+        client.emit(k.VIEW_ROOM, { roomId });
+      })
     });
 
     describe('add_reaction', function() {
