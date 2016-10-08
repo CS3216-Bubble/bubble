@@ -203,7 +203,7 @@ const onViewRoom = ensureRoomExists(socket => data => {
   socket.emit(k.VIEW_ROOM, data.room.toJson);
 });
 
-const onChangeName = socket => data => {
+const onSetUserName = socket => data => {
   // should emit name change to all rooms that user is in
   const { newName } = data;
   if (!newName) {
@@ -211,10 +211,12 @@ const onChangeName = socket => data => {
     return emitAppError(socket, 9, message);
   }
 
+  socket.userName = newName;
+
   Object.keys(socket.rooms)
     .filter(socketId => socketId !== socket.id)
     .forEach(roomId => {
-      socket.to(roomId).emit(k.CHANGE_NAME, {
+      socket.to(roomId).emit(k.SET_USER_NAME, {
         userId: socket.id,
         newName,
       })
@@ -231,7 +233,7 @@ io.on('connection', function(socket) {
   socket.on(k.LIST_ROOMS, onListRooms(socket));
   socket.on(k.DISCONNECT, onDisconnect(socket));
   socket.on(k.VIEW_ROOM, onViewRoom(socket));
-  socket.on(k.CHANGE_NAME, onChangeName(socket));
+  socket.on(k.SET_USER_NAME, onSetUserName(socket));
 });
 
 export {
