@@ -394,9 +394,9 @@ describe('API', function() {
         client.emit(k.ADD_MESSAGE, {
           roomId,
           message: 'Hello',
-        })
+        });
         client.emit(k.VIEW_ROOM, { roomId });
-      })
+      });
     });
 
     describe('add_reaction', function() {
