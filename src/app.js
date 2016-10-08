@@ -98,7 +98,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
   socket.join(room.roomId, () => {
     socket.to(room.roomId).emit(k.JOIN_ROOM, {
-      userId: socket.id.slice(2),
+      userId: socket.id,
     });
   });
 });
@@ -115,7 +115,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
 
   socket.leave(room.roomId, () => {
     socket.to(room.roomId).emit(k.EXIT_ROOM, {
-      userId: socket.id.slice(2),
+      userId: socket.id,
     });
   });
 });
@@ -129,7 +129,7 @@ const onTyping = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.TYPING, {
-    userId: socket.id.slice(2),
+    userId: socket.id,
   });
 });
 
@@ -142,7 +142,7 @@ const onStopTyping = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.STOP_TYPING, {
-    userId: socket.id.slice(2),
+    userId: socket.id,
   });
 });
 
@@ -161,7 +161,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
   }
 
   socket.to(room.roomId).emit(k.ADD_MESSAGE, {
-    userId: socket.id.slice(2),
+    userId: socket.id,
     message,
   });
 });
@@ -185,7 +185,7 @@ const onDisconnect = socket => data => {
         room.removeUser(socket);
         // and notify all other users in the room
         socket.to(room.roomId).emit(k.EXIT_ROOM, {
-          userId: socket.id.slice(2),
+          userId: socket.id,
         });
       }
     });
