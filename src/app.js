@@ -75,7 +75,7 @@ const onCreateRoom = socket => data => {
   );
 
   socket.join(roomId, () => {
-    socket.emit(k.ROOM_CREATED, { roomId: roomId });
+    socket.emit(k.CREATE_ROOM, { roomId: roomId });
   });
 };
 
@@ -97,7 +97,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   room.addUser(socket);
 
   socket.join(room.roomId, () => {
-    socket.to(room.roomId).emit(k.ROOM_JOINED, {
+    socket.to(room.roomId).emit(k.JOIN_ROOM, {
       userId: socket.id.slice(2),
     });
   });
@@ -114,7 +114,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
   room.removeUser(socket);
 
   socket.leave(room.roomId, () => {
-    socket.to(room.roomId).emit(k.ROOM_EXITED, {
+    socket.to(room.roomId).emit(k.EXIT_ROOM, {
       userId: socket.id.slice(2),
     });
   });
@@ -184,7 +184,7 @@ const onDisconnect = socket => data => {
       if (room.isUserHere(socket)) {
         room.removeUser(socket);
         // and notify all other users in the room
-        socket.to(room.roomId).emit(k.ROOM_EXITED, {
+        socket.to(room.roomId).emit(k.EXIT_ROOM, {
           userId: socket.id.slice(2),
         });
       }

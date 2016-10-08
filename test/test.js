@@ -116,14 +116,14 @@ describe('API', function() {
   describe('create_room', function() {
     it('should return error when room name is not specified', function(done) {
       clientShouldReceiveAppError(client, 1, done);
-      clientShouldNotReceiveEvent(client, k.ROOM_CREATED);
+      clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
       client.emit(k.CREATE_ROOM, { /* roomName not specified */ });
     });
 
     it('should default limit of room to 7');
 
     it('should return a room_id', function(done) {
-      client.on(k.ROOM_CREATED, function(data) {
+      client.on(k.CREATE_ROOM, function(data) {
         data.should.have.keys('roomId');
         done();
       });
@@ -138,7 +138,7 @@ describe('API', function() {
     /* All tests below require a room, create it here */
     beforeEach(function(done) {
       // important that this happens only once during initialization
-      client.once(k.ROOM_CREATED, function(data) {
+      client.once(k.CREATE_ROOM, function(data) {
         roomId = data.roomId;
         done();
       });
@@ -157,16 +157,16 @@ describe('API', function() {
 
     describe('join_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.JOIN_ROOM, k.ROOM_JOINED, done));
+        done => errorWithoutRoomId(client, k.JOIN_ROOM, k.JOIN_ROOM, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.JOIN_ROOM, k.ROOM_JOINED, done));
+        done => errorRoomIdNotFound(client, k.JOIN_ROOM, k.JOIN_ROOM, done));
 
       it('should return error when room limit is reached', function(done) {
         // the default room has a user limit of 3
         client2 = makeClient();
         client3 = makeClient();
-        clientShouldNotReceiveEvent(client2, k.ROOM_JOINED);
+        clientShouldNotReceiveEvent(client2, k.JOIN_ROOM);
         clientShouldReceiveAppError(client3, 4, done);
         client2.emit(k.JOIN_ROOM, { roomId: roomId });
         client3.emit(k.JOIN_ROOM, { roomId: roomId });
@@ -174,14 +174,14 @@ describe('API', function() {
 
       it('should return error when user is already in another room');
       it('should return error if user is already in room', function(done) {
-        clientShouldNotReceiveEvent(client, k.ROOM_JOINED);
+        clientShouldNotReceiveEvent(client, k.JOIN_ROOM);
         clientShouldReceiveAppError(client, 7, done);
         client.emit(k.JOIN_ROOM, { roomId });
       });
 
-      it('should emit room_joined event to other users in room', function(done) {
+      it('should emit JOIN_ROOM event to other users in room', function(done) {
         client2 = makeClient();
-        client.on(k.ROOM_JOINED, function(data) {
+        client.on(k.JOIN_ROOM, function(data) {
           data.should.have.keys('userId');
           data.userId.should.equal(client2.id);
           done();
@@ -194,21 +194,21 @@ describe('API', function() {
 
     describe('exit_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.EXIT_ROOM, k.ROOM_EXITED, done));
+        done => errorWithoutRoomId(client, k.EXIT_ROOM, k.EXIT_ROOM, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.EXIT_ROOM, k.ROOM_EXITED, done));
+        done => errorRoomIdNotFound(client, k.EXIT_ROOM, k.EXIT_ROOM, done));
 
       it('should return error if user is not in room', function(done) {
         client2 = makeClient();
         clientShouldReceiveAppError(client2, 5, done);
-        clientShouldNotReceiveEvent(client, k.ROOM_EXITED);
+        clientShouldNotReceiveEvent(client, k.EXIT_ROOM);
         client2.emit(k.EXIT_ROOM, { roomId });
       });
 
-      it('should emit room_exited event to users in a room', function(done) {
+      it('should emit EXIT_ROOM event to users in a room', function(done) {
         client2 = makeClient();
-        client.on(k.ROOM_EXITED, data => {
+        client.on(k.EXIT_ROOM, data => {
           data.should.have.keys('userId');
           data.userId.should.equal(client2.id);
           done();
@@ -362,7 +362,7 @@ describe('API', function() {
         // make another room with just client2
         let room2Id;
         client2 = makeClient();
-        client2.once(k.ROOM_CREATED, function(data) {
+        client2.once(k.CREATE_ROOM, function(data) {
           room2Id = data.roomId;
           // ensure that the rooms are unique
           room2Id.should.not.equal(roomId);
@@ -396,11 +396,11 @@ describe('API', function() {
       it('should emit room_exit to other users in room', function(done) {
         client2 = makeClient();
 
-        client.on(k.ROOM_EXITED, data => {
+        client.on(k.EXIT_ROOM, data => {
           done();
         });
 
-        client.on(k.ROOM_JOINED, data => {
+        client.on(k.JOIN_ROOM, data => {
           data.should.have.keys('userId');
           data.userId.should.equal(client2.id);
           client2.disconnect();

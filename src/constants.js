@@ -10,7 +10,3 @@ export const REPORT_USER = 'report_user';
 export const ADD_MESSAGE = 'add_message';
 export const ADD_REACTION = 'add_reaction';
 export const DISCONNECT = 'disconnect';
-
-export const ROOM_CREATED = 'room_created';
-export const ROOM_JOINED = 'room_joined';
-export const ROOM_EXITED = 'room_exited';
