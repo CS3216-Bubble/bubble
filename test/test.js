@@ -391,7 +391,7 @@ describe('API', function() {
     });
 
     describe('disconnect', function() {
-      it('should emit room_exit to other users in room', function(done) {
+      it('should emit EXIT_ROOM to other users in room', function(done) {
         client2 = makeClient();
 
         client.on(k.EXIT_ROOM, data => {
