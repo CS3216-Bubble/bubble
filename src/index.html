@@ -44,12 +44,12 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
         console.log(msg)
       })
 
-      socket.on('room_created', function(msg){
+      socket.on('create_room', function(msg){
         console.log(`room created ${msg.roomId}`);
         roomId = msg.roomId;
       });
 
-      socket.on('room_joined', function(msg){
+      socket.on('join_room', function(msg){
         console.log(`user ${msg.userId} joined this room`);
       });
 
@@ -83,7 +83,7 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
 
       $('form#send').submit(function(){
         socket.emit('add_message', {
-          roomId,
+          roomId: $('#joinroomid').val(),
           message: $('#m').val(),
         });
         $('#messages').append(
