@@ -219,8 +219,8 @@ const onSetUserName = socket => data => {
       socket.to(roomId).emit(k.SET_USER_NAME, {
         userId: socket.id,
         newName,
-      })
-    })
+      });
+    });
 };
 
 io.on('connection', function(socket) {
