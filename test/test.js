@@ -97,6 +97,7 @@ describe('API', function() {
   /* All tests here will have a room created */
   let client;
   /* store the created roomId so tests can join this room */
+  let createdRoom;
   let roomId;
 
   beforeEach(function(done) {
@@ -121,8 +122,8 @@ describe('API', function() {
     it('should default limit of room to 7');
 
     it('should return a room_id', function(done) {
-      client.on(k.CREATE_ROOM, function(data) {
-        data.should.have.keys('roomId');
+      client.on(k.CREATE_ROOM, function(room) {
+        room.should.have.keys(...ROOM_KEYS);
         done();
       });
       createRoom(client);
@@ -136,8 +137,9 @@ describe('API', function() {
     /* All tests below require a room, create it here */
     beforeEach(function(done) {
       // important that this happens only once during initialization
-      client.once(k.CREATE_ROOM, function(data) {
-        roomId = data.roomId;
+      client.once(k.CREATE_ROOM, function(room) {
+        createdRoom = room;
+        roomId = createdRoom.roomId;
         done();
       });
       createRoom(client);
@@ -360,8 +362,8 @@ describe('API', function() {
         // make another room with just client2
         let room2Id;
         client2 = makeClient();
-        client2.once(k.CREATE_ROOM, function(data) {
-          room2Id = data.roomId;
+        client2.once(k.CREATE_ROOM, function(room) {
+          room2Id = room.roomId;
           // ensure that the rooms are unique
           room2Id.should.not.equal(roomId);
         });

@@ -65,7 +65,7 @@ const onCreateRoom = socket => data => {
   }
 
   const roomId = uuid.v4();
-  roomIdToRoom[roomId] = new Room(
+  const room = new Room(
     roomId,
     roomName,
     userLimit,
@@ -73,9 +73,10 @@ const onCreateRoom = socket => data => {
     categories,
     [socket],
   );
+  roomIdToRoom[roomId] = room;
 
   socket.join(roomId, () => {
-    socket.emit(k.CREATE_ROOM, { roomId: roomId });
+    socket.emit(k.CREATE_ROOM, room.toJson);
   });
 };
 
