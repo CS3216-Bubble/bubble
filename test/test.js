@@ -70,14 +70,13 @@ function makeClient() {
  * is made without specifying roomId.
  *
  * @param {object} client socket.io client
- * @param {string} eventToEmit event to emit that will trigger error
- * @param {string} shouldNot event that should not be emitted to client
+ * @param {string} event event to emit that will trigger error
  * @param {function} done mocha done callback
  */
-function errorWithoutRoomId(client, eventToEmit, shouldNot, done) {
+function errorWithoutRoomId(client, event, done) {
   clientShouldReceiveAppError(client, 2, done);
-  clientShouldNotReceiveEvent(client, shouldNot);
-  client.emit(eventToEmit, { /* roomId not specified */ });
+  clientShouldNotReceiveEvent(client, event);
+  client.emit(event, { /* roomId not specified */ });
 }
 
 /**
@@ -85,14 +84,13 @@ function errorWithoutRoomId(client, eventToEmit, shouldNot, done) {
  * specified in a request is invalid or cannot be found
  *
  * @param {object} client socket.io client
- * @param {string} eventToEmit event to emit that will trigger error
- * @param {string} shouldNot event that should not be emitted to client
+ * @param {string} event event to emit that will trigger error
  * @param {function} done mocha done callback
  */
-function errorRoomIdNotFound(client, eventToEmit, shouldNot, done) {
+function errorRoomIdNotFound(client, event, done) {
   clientShouldReceiveAppError(client, 3, done);
-  clientShouldNotReceiveEvent(client, shouldNot);
-  client.emit(eventToEmit, { roomId: INVALID_ROOM_ID });
+  clientShouldNotReceiveEvent(client, event);
+  client.emit(event, { roomId: INVALID_ROOM_ID });
 }
 
 describe('API', function() {
@@ -157,10 +155,10 @@ describe('API', function() {
 
     describe('join_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.JOIN_ROOM, k.JOIN_ROOM, done));
+        done => errorWithoutRoomId(client, k.JOIN_ROOM, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.JOIN_ROOM, k.JOIN_ROOM, done));
+        done => errorRoomIdNotFound(client, k.JOIN_ROOM, done));
 
       it('should return error when room limit is reached', function(done) {
         // the default room has a user limit of 3
@@ -194,10 +192,10 @@ describe('API', function() {
 
     describe('exit_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.EXIT_ROOM, k.EXIT_ROOM, done));
+        done => errorWithoutRoomId(client, k.EXIT_ROOM, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.EXIT_ROOM, k.EXIT_ROOM, done));
+        done => errorRoomIdNotFound(client, k.EXIT_ROOM, done));
 
       it('should return error if user is not in room', function(done) {
         client2 = makeClient();
@@ -222,10 +220,10 @@ describe('API', function() {
 
     describe('view_room', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.VIEW_ROOM, k.VIEW_ROOM, done));
+        done => errorWithoutRoomId(client, k.VIEW_ROOM, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.VIEW_ROOM, k.VIEW_ROOM, done));
+        done => errorRoomIdNotFound(client, k.VIEW_ROOM, done));
 
       it('should return room details', function(done) {
         client.on(k.VIEW_ROOM, data => {
@@ -262,10 +260,10 @@ describe('API', function() {
 
     describe('typing', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.TYPING, k.TYPING, done));
+        done => errorWithoutRoomId(client, k.TYPING, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.TYPING, k.TYPING, done));
+        done => errorRoomIdNotFound(client, k.TYPING, done));
 
       it('should return error if user is not in room', function(done) {
         client2 = makeClient();
@@ -288,10 +286,10 @@ describe('API', function() {
 
     describe('stop_typing', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.STOP_TYPING, k.STOP_TYPING, done));
+        done => errorWithoutRoomId(client, k.STOP_TYPING, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.STOP_TYPING, k.STOP_TYPING, done));
+        done => errorRoomIdNotFound(client, k.STOP_TYPING, done));
 
       it('should return error if user is not in room', function(done) {
         client2 = makeClient();
@@ -321,10 +319,10 @@ describe('API', function() {
 
     describe('add_message', function() {
       it('should return error when room id is not specified',
-        done => errorWithoutRoomId(client, k.ADD_MESSAGE, k.ADD_MESSAGE, done));
+        done => errorWithoutRoomId(client, k.ADD_MESSAGE, done));
 
       it('should return error when room id cannot be found',
-        done => errorRoomIdNotFound(client, k.ADD_MESSAGE, k.ADD_MESSAGE, done));
+        done => errorRoomIdNotFound(client, k.ADD_MESSAGE, done));
 
       it('should return error when message is not specified', function(done) {
         clientShouldReceiveAppError(client, 6, done);
