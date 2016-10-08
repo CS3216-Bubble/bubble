@@ -1,6 +1,7 @@
 export const APP_ERROR = 'bubble_error';
 export const CREATE_ROOM = 'create_room';
 export const JOIN_ROOM = 'join_room';
+export const VIEW_ROOM = 'view_room';
 export const EXIT_ROOM = 'exit_room';
 export const LIST_ROOMS = 'list_rooms';
 export const TYPING = 'typing';

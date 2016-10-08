@@ -5,6 +5,11 @@ import should from 'should';
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 
+const ROOM_KEYS = [
+  'roomId', 'roomName', 'userLimit', 'roomDescription',
+  'categories', 'numberOfUsers', 'lastActive',
+];
+
 const INVALID_ROOM_ID = 'invalidroomid';
 
 /**
@@ -216,7 +221,19 @@ describe('API', function() {
     });
 
     describe('view_room', function() {
-      it('TODO');
+      it('should return error when room id is not specified',
+        done => errorWithoutRoomId(client, k.VIEW_ROOM, k.VIEW_ROOM, done));
+
+      it('should return error when room id cannot be found',
+        done => errorRoomIdNotFound(client, k.VIEW_ROOM, k.VIEW_ROOM, done));
+
+      it('should return room details', function(done) {
+        client.on(k.VIEW_ROOM, data => {
+          data.should.have.keys(...ROOM_KEYS);
+          done();
+        });
+        client.emit(k.VIEW_ROOM, { roomId });
+      });
     });
 
     describe('list_rooms', function() {
@@ -225,10 +242,7 @@ describe('API', function() {
         client.on(k.LIST_ROOMS, data => {
           data.should.be.Array();
           data.length.should.equal(1);
-          data[0].should.have.keys(
-            'roomId', 'roomName', 'userLimit', 'roomDescription',
-            'categories', 'numberOfUsers', 'lastActive',
-          );
+          data[0].should.have.keys(...ROOM_KEYS);
           done();
         });
       });
@@ -279,6 +293,13 @@ describe('API', function() {
       it('should return error when room id cannot be found',
         done => errorRoomIdNotFound(client, k.STOP_TYPING, k.STOP_TYPING, done));
 
+      it('should return error if user is not in room', function(done) {
+        client2 = makeClient();
+        clientShouldReceiveAppError(client2, 5, done);
+        clientShouldNotReceiveEvent(client, k.STOP_TYPING);
+        client2.emit(k.STOP_TYPING, { roomId });
+      });
+
       it('should emit stop_typing event to all other users in a room', function(done) {
         client2 = makeClient();
         client2.emit(k.JOIN_ROOM, { roomId });
@@ -313,8 +334,18 @@ describe('API', function() {
         });
       });
 
+      it('should return error when user is not in room', function(done) {
+        client2 = makeClient();
+        clientShouldReceiveAppError(client2, 8, done);
+        client2.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
+      });
+
       it('should emit add_message event to all users in a room', function(done) {
         client2 = makeClient();
+        client2.emit(k.JOIN_ROOM, { roomId });
         client2.emit(k.ADD_MESSAGE, {
           roomId,
           message: 'Hello',
@@ -323,7 +354,33 @@ describe('API', function() {
           data.should.have.keys('userId', 'message');
           data.userId.should.equal(client2.id);
           data.message.should.equal('Hello');
-          client2.disconnect();
+          done();
+        });
+      });
+
+      it('should not send message to other rooms', function(done) {
+        // make another room with just client2
+        let room2Id;
+        client2 = makeClient();
+        client2.once(k.ROOM_CREATED, function(data) {
+          room2Id = data.roomId;
+          // ensure that the rooms are unique
+          room2Id.should.not.equal(roomId);
+        });
+        createRoom(client2);
+        // no messages will be sent to client2 because it is in another room
+        clientShouldNotReceiveEvent(client2, k.ADD_MESSAGE);
+
+        // client3 joins the room client created
+        client3 = makeClient();
+        // so a message client3 sends should not go to client2
+        client3.emit(k.JOIN_ROOM, { roomId });
+        client3.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
+        client.on(k.ADD_MESSAGE, data => {
+          data.userId.should.equal(client3.id);
           done();
         });
       });

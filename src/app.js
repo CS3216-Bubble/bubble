@@ -150,6 +150,11 @@ const onAddMessage = ensureRoomExists(socket => data => {
   const room = data.room;
   const { message } = data;
 
+  if (!room.isUserHere(socket)) {
+    const message = `User ${socket.id} is not in room ${room.roomId}`;
+    return emitAppError(socket, 8, message);
+  }
+
   if (!message) {
     const message = `No message specified.`;
     return emitAppError(socket, 6, message);
@@ -186,6 +191,10 @@ const onDisconnect = socket => data => {
     });
 };
 
+const onViewRoom = ensureRoomExists(socket => data => {
+  socket.emit(k.VIEW_ROOM, data.room.toJson);
+});
+
 io.on('connection', function(socket) {
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
@@ -195,6 +204,7 @@ io.on('connection', function(socket) {
   socket.on(k.ADD_MESSAGE, onAddMessage(socket));
   socket.on(k.LIST_ROOMS, onListRooms(socket));
   socket.on(k.DISCONNECT, onDisconnect(socket));
+  socket.on(k.VIEW_ROOM, onViewRoom(socket));
 });
 
 export {
