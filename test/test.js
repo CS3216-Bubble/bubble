@@ -16,33 +16,25 @@ describe('API', function() {
   /* All tests here will have a room created */
   let client;
   let client2;
-  let client3;
   /* store the created roomId so tests can join this room */
-  let createdRoom;
   let roomId;
 
   beforeEach(function(done) {
     server.listen(3000);
     client = makeClient(io);
+    client2 = makeClient(io);
     // important that this happens only once during initialization
     client.once(k.CREATE_ROOM, function(room) {
-      createdRoom = room;
-      roomId = createdRoom.roomId;
+      roomId = room.roomId;
       done();
     });
-    /* All tests below require a room, create it here */
     createRoom(client);
   });
 
   afterEach(function(done) {
     client.disconnect();
+    client2.disconnect();
     server.close();
-    if (client2) {
-      client2.disconnect();
-    }
-    if (client3) {
-      client3.disconnect();
-    }
     done();
   });
 
@@ -54,7 +46,6 @@ describe('API', function() {
 
     it('should emit set_user_name event to all users in room', function(done) {
       const newName = 'client 2 name';
-      client2 = makeClient(io);
       client2.emit(k.JOIN_ROOM, { roomId });
       client2.emit(k.SET_USER_NAME, { newName });
       client.on(k.SET_USER_NAME, data => {
