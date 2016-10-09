@@ -19,7 +19,6 @@ describe('API', function() {
   /* All tests here will have a room created */
   let client;
   let client2;
-  let client3;
   /* store the created roomId so tests can join this room */
   let createdRoom;
   let roomId;
@@ -27,6 +26,7 @@ describe('API', function() {
   beforeEach(function(done) {
     server.listen(3000);
     client = makeClient(io);
+    client2 = makeClient(io);
     // important that this happens only once during initialization
     client.once(k.CREATE_ROOM, function(room) {
       createdRoom = room;
@@ -39,13 +39,8 @@ describe('API', function() {
 
   afterEach(function(done) {
     client.disconnect();
+    client2.disconnect();
     server.close();
-    if (client2) {
-      client2.disconnect();
-    }
-    if (client3) {
-      client3.disconnect();
-    }
     done();
   });
 
@@ -57,14 +52,12 @@ describe('API', function() {
       done => errorRoomIdNotFound(client, k.TYPING, done));
 
     it('should return error if user is not in room', function(done) {
-      client2 = makeClient(io);
       clientShouldReceiveAppError(client2, e.USER_NOT_IN_ROOM, done);
       clientShouldNotReceiveEvent(client, k.TYPING);
       client2.emit(k.TYPING, { roomId });
     });
 
     it('should emit typing event to all other users in a room', function(done) {
-      client2 = makeClient(io);
       client2.emit(k.JOIN_ROOM, { roomId });
       client2.emit(k.TYPING, { roomId });
       client.on(k.TYPING, data => {
@@ -83,14 +76,12 @@ describe('API', function() {
       done => errorRoomIdNotFound(client, k.STOP_TYPING, done));
 
     it('should return error if user is not in room', function(done) {
-      client2 = makeClient(io);
       clientShouldReceiveAppError(client2, e.USER_NOT_IN_ROOM, done);
       clientShouldNotReceiveEvent(client, k.STOP_TYPING);
       client2.emit(k.STOP_TYPING, { roomId });
     });
 
     it('should emit stop_typing event to all other users in a room', function(done) {
-      client2 = makeClient(io);
       client2.emit(k.JOIN_ROOM, { roomId });
       client2.emit(k.STOP_TYPING, { roomId });
       client.on(k.STOP_TYPING, data => {
