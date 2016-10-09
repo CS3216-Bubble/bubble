@@ -45,7 +45,7 @@ describe('API', function() {
     it('should return a list of rooms ordered by last activity', function(done) {
       // first create another room that has a newer lastActive
       createRoom(client);
-      client.emit(k.LIST_ROOMS);
+      client.on(k.CREATE_ROOM, () => client.emit(k.LIST_ROOMS));
       client.on(k.LIST_ROOMS, data => {
         data.should.be.Array();
         data.length.should.equal(2);

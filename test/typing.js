@@ -56,7 +56,7 @@ describe('API', function() {
 
     it('should emit typing event to all other users in a room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.TYPING, { roomId });
+      client.on(k.JOIN_ROOM, () => client2.emit(k.TYPING, { roomId }));
       client.on(k.TYPING, data => {
         data.should.have.keys('userId');
         data.userId.should.equal(client2.id);
@@ -80,7 +80,7 @@ describe('API', function() {
 
     it('should emit stop_typing event to all other users in a room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.STOP_TYPING, { roomId });
+      client.on(k.JOIN_ROOM, () => client2.emit(k.STOP_TYPING, { roomId }));
       client.on(k.STOP_TYPING, data => {
         data.should.have.keys('userId');
         data.userId.should.equal(client2.id);
