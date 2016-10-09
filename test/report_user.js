@@ -6,8 +6,6 @@ import * as e from '../src/error_code';
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
-  ROOM_KEYS,
-  clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
   errorRoomIdNotFound,
@@ -51,9 +49,49 @@ describe('API', function() {
   });
 
   describe('report_user', function() {
-    it('should return error when room id is not specified');
-    it('should return error when user to report is not specified');
+    it('should return error when room id is not specified',
+      done => errorWithoutRoomId(client, k.ADD_MESSAGE, done));
+
+    it('should return error when room id cannot be found',
+      done => errorRoomIdNotFound(client, k.ADD_MESSAGE, done));
+
+    it('should return error when user to report is not specified', function(done) {
+      clientShouldReceiveAppError(client, e.NO_USER_TO_REPORT, done);
+      client.emit(k.REPORT_USER, {
+        roomId,
+        /* userToReport not specified */
+      });
+    });
+
+    it('should return error when user to report is not in room', function(done) {
+      clientShouldReceiveAppError(client, e.NO_USER_TO_REPORT, done);
+      client.emit(k.REPORT_USER, {
+        roomId,
+        userToReport: 'usernotinroom',
+      });
+    });
+
+    // should we allow empty reasons?
     it('should return error when reason is not specified');
-    // TODO it('should emit user_reported event to all other users in a room');
+
+    it('should emit report_user event to all other users in a room', function(done) {
+      client2 = makeClient(io);
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, data => {
+        client.emit(k.REPORT_USER, {
+          roomId,
+          userToReport: data.userId,
+          reason: 'no reason',
+        });
+      });
+
+      // let the reported user know that he has been reported
+      client2.on(k.REPORT_USER, data => {
+        data.roomId.should.equal(roomId);
+        data.reportedUserId.should.equal(client2.id);
+        data.reason.should.equal('no reason');
+        done();
+      });
+    });
   });
 });

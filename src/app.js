@@ -281,6 +281,27 @@ const onCounsellerOnline = socket => data => {
   socket.emit(k.COUNSELLER_ONLINE, {});
 };
 
+const onReportUser = ensureRoomExists(socket => data => {
+  const room = data.room;
+  const { userToReport, reason } = data;
+
+  if (!userToReport) {
+    let message = `Did not specify user to report`;
+    return emitAppError(socket, e.NO_USER_TO_REPORT, message);
+  }
+
+  if (!room.isUserHere({id: userToReport})) {
+    let message = `User is not in room`;
+    return emitAppError(socket, e.NO_USER_TO_REPORT, message);
+  }
+
+  socket.to(room.roomId).emit(k.REPORT_USER, {
+    roomId: room.roomId,
+    reportedUserId: userToReport,
+    reason: reason,
+  });
+});
+
 io.on('connection', function(socket) {
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
@@ -294,6 +315,7 @@ io.on('connection', function(socket) {
   socket.on(k.SET_USER_NAME, onSetUserName(socket));
   socket.on(k.FIND_COUNSELLER, onFindCounseller(socket));
   socket.on(k.COUNSELLER_ONLINE, onCounsellerOnline(socket));
+  socket.on(k.REPORT_USER, onReportUser(socket));
 });
 
 export {
