@@ -1,4 +1,5 @@
 export const NO_MESSAGE = 'NO_MESSAGE';
+export const NO_REACTION = 'NO_REACTION';
 export const NO_NAME = 'NO_NAME';
 export const NO_ROOM_ID = 'NO_ROOM_ID';
 export const NO_ROOM_NAME = 'NO_ROOM_NAME';

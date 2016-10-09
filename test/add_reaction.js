@@ -1,58 +1,90 @@
-// import { afterEach, beforeEach, describe, it } from 'mocha';
-// import io from 'socket.io-client';
-// import should from 'should'; // eslint-disable-line no-unused-vars
+import { afterEach, beforeEach, describe, it } from 'mocha';
+import io from 'socket.io-client';
+import should from 'should'; // eslint-disable-line no-unused-vars
 
-// import * as e from '../src/error_code';
-// import * as k from '../src/constants';
-// import { server } from '../src/app'; // eslint-disable-line no-unused-vars
-// import {
-//   ROOM_KEYS,
-//   clientShouldNotReceiveEvent,
-//   clientShouldReceiveAppError,
-//   createRoom,
-//   errorRoomIdNotFound,
-//   errorWithoutRoomId,
-//   makeClient,
-// } from './helpers';
+import * as e from '../src/error_code';
+import * as k from '../src/constants';
+import REACTION_TYPE from '../src/models/reaction_type';
+import { server } from '../src/app'; // eslint-disable-line no-unused-vars
+import {
+  clientShouldNotReceiveEvent,
+  clientShouldReceiveAppError,
+  createRoom,
+  errorRoomIdNotFound,
+  errorWithoutRoomId,
+  makeClient,
+} from './helpers';
 
-// describe('API', function() {
-//   this.timeout(3000);
-//   /* All tests here will have a room created */
-//   let client;
-//   let client2;
-//   let client3;
-//   /* store the created roomId so tests can join this room */
-//   let createdRoom;
-//   let roomId;
+describe('API', function() {
+  this.timeout(3000);
+  let client;
+  let client2;
+  let client3;
+  /* store the created roomId so tests can join this room */
+  let createdRoom;
+  let roomId;
 
-//   beforeEach(function(done) {
-//     server.listen(3000);
-//     client = makeClient(io);
-//     // important that this happens only once during initialization
-//     client.once(k.CREATE_ROOM, function(room) {
-//       createdRoom = room;
-//       roomId = createdRoom.roomId;
-//       done();
-//     });
-//     /* All tests below require a room, create it here */
-//     createRoom(client);
-//   });
+  beforeEach(function(done) {
+    server.listen(3000);
+    client = makeClient(io);
+    client2 = makeClient(io);
+    client3 = makeClient(io);
+    // important that this happens only once during initialization
+    client.once(k.CREATE_ROOM, function(room) {
+      createdRoom = room;
+      roomId = createdRoom.roomId;
+      done();
+    });
+    /* All tests below require a room, create it here */
+    createRoom(client);
+  });
 
-//   afterEach(function(done) {
-//     client.disconnect();
-//     server.close();
-//     if (client2) {
-//       client2.disconnect();
-//     }
-//     if (client3) {
-//       client3.disconnect();
-//     }
-//     done();
-//   });
+  afterEach(function(done) {
+    client.disconnect();
+    client2.disconnect();
+    client3.disconnect();
+    server.close();
+    done();
+  });
 
-//   describe('add_reaction', function() {
-//     it('should return error when room id is not specified');
-//     it('should return error when message is not specified');
-//     it('should emit add_reaction event to all other users in a room');
-//   });
-// });
+  describe('add_reaction', function() {
+    it('should return error when room id is not specified',
+      done => errorWithoutRoomId(client, k.ADD_REACTION, done));
+
+    it('should return error when room id cannot be found',
+      done => errorRoomIdNotFound(client, k.ADD_REACTION, done));
+
+    it('should return error when reaction is not specified', function(done) {
+      clientShouldReceiveAppError(client, e.NO_REACTION, done);
+      client.emit(k.ADD_REACTION, {
+        roomId,
+        /* reaction not specified */
+      });
+    });
+
+    it('should emit add_reaction event to all users in a room', function(done) {
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client2.emit(k.ADD_REACTION, {
+        roomId,
+        reaction: REACTION_TYPE.THANK,
+      });
+      client.on(k.ADD_REACTION, data => {
+        data.should.have.keys('userId', 'roomId', 'reaction');
+        data.userId.should.equal(client2.id);
+        data.roomId.should.equal(roomId);
+        data.reaction.should.equal(REACTION_TYPE.THANK);
+        done();
+      });
+    });
+
+    it('should not emit add_reaction event to users in other room', function(done) {
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client2.emit(k.ADD_REACTION, {
+        roomId,
+        reaction: REACTION_TYPE.THANK,
+      });
+      clientShouldNotReceiveEvent(client3, k.ADD_REACTION);
+      client.on(k.ADD_REACTION, () => done());
+    });
+  });
+});

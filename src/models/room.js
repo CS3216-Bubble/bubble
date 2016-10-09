@@ -1,4 +1,5 @@
 import ROOM_TYPE from './room_type';
+import MESSAGE_TYPE from './message_type';
 
 class Room {
   roomId: string;
@@ -57,7 +58,18 @@ class Room {
   addMessage(userId, message) {
     this.messages.push({
       userId,
+      type: MESSAGE_TYPE.MESSAGE,
       message,
+      date: new Date(),
+    });
+    this.touch();
+  }
+
+  addReaction(userId, reaction) {
+    this.messages.push({
+      userId,
+      type: MESSAGE_TYPE.REACTION,
+      reaction,
       date: new Date(),
     });
     this.touch();

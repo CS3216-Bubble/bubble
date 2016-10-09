@@ -178,6 +178,29 @@ const onAddMessage = ensureRoomExists(socket => data => {
   });
 });
 
+const onAddReaction = ensureRoomExists(socket => data => {
+  const room = data.room;
+  const { reaction } = data;
+
+  if (!room.isUserHere(socket)) {
+    const message = `User ${socket.id} is not in room ${room.roomId}`;
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
+  }
+
+  if (!reaction) {
+    const message = `No reaction specified.`;
+    return emitAppError(socket, e.NO_REACTION, message);
+  }
+
+  room.addReaction(socket.id, reaction);
+
+  socket.to(room.roomId).emit(k.ADD_REACTION, {
+    roomId: room.roomId,
+    userId: socket.id,
+    reaction,
+  });
+});
+
 const onListRooms = socket => data => {
   const rooms = Object.keys(roomIdToRoom)
     .map(k => roomIdToRoom[k])
@@ -311,6 +334,7 @@ io.on('connection', function(socket) {
   socket.on(k.TYPING, onTyping(socket));
   socket.on(k.STOP_TYPING, onStopTyping(socket));
   socket.on(k.ADD_MESSAGE, onAddMessage(socket));
+  socket.on(k.ADD_REACTION, onAddReaction(socket));
   socket.on(k.LIST_ROOMS, onListRooms(socket));
   socket.on(k.DISCONNECT, onDisconnect(socket));
   socket.on(k.VIEW_ROOM, onViewRoom(socket));
