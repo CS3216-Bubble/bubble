@@ -52,7 +52,7 @@ describe('API', function() {
         counseller.on(k.COUNSELLER_ONLINE, () => done());
       });
 
-      it.only('should create a chat room with counseller', function(done) {
+      it('should create a chat room with counseller', function(done) {
         client.on(k.FIND_COUNSELLER, data => {
           data.should.have.keys(
             'counsellerId', 'counsellerName', 'roomId', 'roomType', 'userLimit');
