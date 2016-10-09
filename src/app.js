@@ -28,7 +28,7 @@ const emitAppError = (socket, code, message) => {
 };
 
 const roomIdToRoom : {[roomId:string]: Room} = {};
-let COUNSELLERS = []
+let COUNSELLERS = [];
 
 /**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
@@ -201,9 +201,9 @@ const onDisconnect = socket => data => {
       }
     });
   COUNSELLERS = COUNSELLERS.filter(
-    c => c.socket.id !== socket.id)
+    c => c.socket.id !== socket.id);
   COUNSELLERS = COUNSELLERS.filter(
-    c => c.socket.id !== socket.id)
+    c => c.socket.id !== socket.id);
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -235,7 +235,7 @@ const onFindCounseller = socket => data => {
     c => c.isOnline
   );
 
-  if (counsellersAvailable.length == 0) {
+  if (counsellersAvailable.length === 0) {
     const message = 'No counsellers available';
     return emitAppError(socket, e.COUNSELLER_UNAVAILABLE, message);
   }
@@ -266,8 +266,7 @@ const onFindCounseller = socket => data => {
       });
     });
   });
-
-}
+};
 
 const onCounsellerOnline = socket => data => {
   // TODO errors when data not provided

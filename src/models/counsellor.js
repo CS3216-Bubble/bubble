@@ -1,7 +1,7 @@
 class Counsellor {
   counsellorId: string;
   counsellorName: string;
-  socket: object;
+  socket: Object;
   lastOnline: Date;
 
   constructor(
@@ -16,7 +16,7 @@ class Counsellor {
   }
 
   get isOnline() {
-    return this.socket !== null
+    return this.socket !== null;
   }
 
   goOnline(socket) {
@@ -30,7 +30,7 @@ class Counsellor {
   }
 
   get toJson() {
-    let lastOnline = this.last
+    let lastOnline = this.last;
     if (this.lastOnline === null) {
       lastOnline = null;
     } else {
@@ -41,7 +41,7 @@ class Counsellor {
       counsellerId: this.counsellorId,
       counsellerName: this.counsellorName,
       lastOnline,
-    }
+    };
   }
 
 }

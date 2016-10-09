@@ -1,5 +1,4 @@
-const PUBLIC = 0;
-const PRIVATE = 1;
+import { PUBLIC } from './room_types';
 
 class Room {
   roomId: string;

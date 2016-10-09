@@ -6,14 +6,9 @@ import * as e from '../src/error_code';
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
-  ROOM_KEYS,
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
-  createRoom,
-  errorRoomIdNotFound,
-  errorWithoutRoomId,
   makeClient,
-  matchUuid4,
   uuid4Regex,
 } from './helpers';
 
