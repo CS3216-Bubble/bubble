@@ -59,8 +59,8 @@ describe('API', function() {
           data.should.have.keys(
             'counsellerId', 'counsellerName', 'roomId', 'roomType', 'userLimit');
           data.roomId.should.match(uuid4Regex);
-          data.roomType.should.equal(ROOM_TYPE.PRIVATE);
-          data.userLimit.should.equal(2);
+          data.roomType.should.equal(ROOM_TYPE.PRIVATE, 'room type should be private');
+          data.userLimit.should.equal(2, 'room can only have 2 users');
           data.counsellerId.should.equal(counsellerId);
           data.counsellerName.should.equal(counsellerName);
           done();
