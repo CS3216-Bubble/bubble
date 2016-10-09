@@ -11,3 +11,4 @@ export const ADD_MESSAGE = 'add_message';
 export const ADD_REACTION = 'add_reaction';
 export const DISCONNECT = 'disconnect';
 export const SET_USER_NAME = 'set_user_name';
+export const FIND_COUNSELLER = 'find_counseller';
