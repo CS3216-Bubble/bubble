@@ -5,6 +5,7 @@ import socketio from 'socket.io';
 import uuid from 'uuid';
 import { createServer } from 'http';
 
+import * as e from './error_code';
 import * as k from './constants';
 import Room from './models/room';
 import logger from './logging';
@@ -40,12 +41,12 @@ const ensureRoomExists = nextFn => socket => data => {
   const { roomId } = data;
   if (!roomId) {
     const message = 'Room id not specified.';
-    return emitAppError(socket, 2, message);
+    return emitAppError(socket, e.NO_ROOM_ID, message);
   }
 
   if (!Object.keys(roomIdToRoom).includes(roomId)) {
     const message = `Room ${roomId} cannot be found.`;
-    return emitAppError(socket, 3, message);
+    return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
   }
 
   return nextFn(socket)({...data, room: roomIdToRoom[roomId]});
@@ -61,7 +62,7 @@ const onCreateRoom = socket => data => {
 
   if (!roomName) {
     const message = 'Room name is not specified.';
-    return emitAppError(socket, 1, message);
+    return emitAppError(socket, e.NO_ROOM_NAME, message);
   }
 
   const roomId = uuid.v4();
@@ -86,13 +87,13 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   // ensures user is not already in the room
   if (room.isUserHere(socket)) {
     const message = `User ${socket.id} is already in room ${room.roomId}`;
-    return emitAppError(socket, 7, message);
+    return emitAppError(socket, e.USER_ALREADY_IN_ROOM, message);
   }
 
   // ensures that we are under the user limit for the room
   if (room.numberOfUsers + 1 > room.userLimit) {
     const message = `Room ${room.roomId} is at user limit of ${room.userLimit}.`;
-    return emitAppError(socket, 4, message);
+    return emitAppError(socket, e.ROOM_FULL, message);
   }
 
   room.addUser(socket);
@@ -110,7 +111,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User is not in room ${room.roomId}.`;
-    return emitAppError(socket, 5, message);
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
   room.removeUser(socket);
@@ -128,7 +129,7 @@ const onTyping = ensureRoomExists(socket => data => {
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User is not in room ${room.roomId}.`;
-    return emitAppError(socket, 5, message);
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
   socket.to(room.roomId).emit(k.TYPING, {
@@ -142,7 +143,7 @@ const onStopTyping = ensureRoomExists(socket => data => {
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User is not in room ${room.roomId}.`;
-    return emitAppError(socket, 5, message);
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
   socket.to(room.roomId).emit(k.STOP_TYPING, {
@@ -157,12 +158,12 @@ const onAddMessage = ensureRoomExists(socket => data => {
 
   if (!room.isUserHere(socket)) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
-    return emitAppError(socket, 8, message);
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
   if (!message) {
     const message = `No message specified.`;
-    return emitAppError(socket, 6, message);
+    return emitAppError(socket, e.NO_MESSAGE, message);
   }
 
   room.touch(); // update lastActive
