@@ -18,10 +18,8 @@ const counsellerName = 'CC';
 
 describe('API', function() {
   this.timeout(3000);
-  /* All tests here will have a room created */
   let client;
   let counseller;
-  /* store the created roomId so tests can join this room */
 
   beforeEach(function(done) {
     server.listen(3000);

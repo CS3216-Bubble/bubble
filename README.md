@@ -103,7 +103,7 @@ Emits event `exit_room` to all users connected to room:
 }
 ```
 
-### view_rooms
+### list_rooms
 
 ```
 {
@@ -120,6 +120,30 @@ Response:
 ```
 
 Notes: see all available rooms, paginate? how to sort?
+
+### view_room
+
+```
+{
+    user: UserId,
+    roomId: RoomId,
+}
+```
+
+Response:
+
+```
+{
+    roomId,
+    roomName,
+    roomType,
+    userLimit,
+    roomDescription,
+    categories,
+    numberOfUsers,
+    lastActive,
+}
+```
 
 ### typing
 
@@ -219,14 +243,66 @@ Emits event `add_reaction` to all other users in room:
 }
 ```
 
-## Server-emitted websocket events
+### set_user_name
 
-Websocket events that the server will emit to clients.
+Sets name for current user
 
-- `create_room`
-- `join_room`
-- `exit_room`
-- `typing`
-- `stop_typing`
-- `add_message`
-- `add_reaction`
+```
+{
+    userId: UserId,
+    newName: String,
+}
+```
+
+Emits event `set_user_name` to all other users in all rooms user is in
+
+```
+{
+    userId: UserId,
+    newName: String,
+}
+```
+
+### find_counsellor
+
+Tries to find a counsellor for current user
+
+```
+{
+    userId: UserId,
+}
+```
+
+Emits event `find_counsellor` if there is a match,
+contains information about the counsellor and the private chat room created.
+
+```
+{
+    counsellorId: String,
+    counsellorName: String,
+    roomId,
+    roomName,
+    roomType,
+    userLimit,
+    roomDescription,
+    categories,
+    numberOfUsers,
+    lastActive,
+}
+```
+
+
+## counsellor specific endpoints
+
+These events are used for counsellors only
+
+### counsellor_online
+
+counsellor goes online
+
+```
+{
+    userId: UserId,
+    newName: String,
+}
+```
