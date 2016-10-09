@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import * as e from './error_code';
 import * as k from './constants';
 import Room from './models/room';
+import ROOM_TYPE from './models/room_type';
 import Counsellor from './models/counsellor';
 import logger from './logging';
 
@@ -247,6 +248,7 @@ const onFindCounseller = socket => data => {
   const room = new Room({
     roomId,
     roomName: 'Chat with counseller',
+    roomType: ROOM_TYPE.PRIVATE,
     userLimit: 2,
     roomDescription: '',
     categories: [],

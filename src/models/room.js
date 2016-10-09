@@ -1,4 +1,4 @@
-import { PUBLIC } from './room_types';
+import ROOM_TYPE from './room_type';
 
 class Room {
   roomId: string;
@@ -11,16 +11,17 @@ class Room {
   lastActive: Date;
 
   constructor({
-      roomId,
-      roomName,
-      userLimit,
-      roomDescription = '',
-      categories = [],
-      sockets = []
+    roomId,
+    roomName,
+    roomType = ROOM_TYPE.PUBLIC,
+    userLimit,
+    roomDescription = '',
+    categories = [],
+    sockets = []
   }) {
     this.roomId = roomId;
     this.roomName = roomName;
-    this.roomType = PUBLIC;
+    this.roomType = roomType;
     this.userLimit = userLimit;
     this.roomDescription = roomDescription;
     this.categories = categories;
@@ -56,6 +57,7 @@ class Room {
     return {
       roomId: this.roomId,
       roomName: this.roomName,
+      roomType: this.roomType,
       userLimit: this.userLimit,
       roomDescription: this.roomDescription,
       categories: this.categories,

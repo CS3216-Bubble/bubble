@@ -4,6 +4,7 @@ import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as e from '../src/error_code';
 import * as k from '../src/constants';
+import ROOM_TYPE from '../src/models/room_type';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
   clientShouldNotReceiveEvent,
@@ -53,10 +54,13 @@ describe('API', function() {
         counseller.on(k.COUNSELLER_ONLINE, () => done());
       });
 
-      it('should create a chat room with counseller', function(done) {
+      it.only('should create a chat room with counseller', function(done) {
         client.on(k.FIND_COUNSELLER, data => {
-          data.should.have.keys('counsellerId', 'counsellerName', 'roomId');
+          data.should.have.keys(
+            'counsellerId', 'counsellerName', 'roomId', 'roomType', 'userLimit');
           data.roomId.should.match(uuid4Regex);
+          data.roomType.should.equal(ROOM_TYPE.PRIVATE);
+          data.userLimit.should.equal(2);
           data.counsellerId.should.equal(counsellerId);
           data.counsellerName.should.equal(counsellerName);
           done();
