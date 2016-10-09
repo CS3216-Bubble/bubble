@@ -141,7 +141,7 @@ describe('API', function() {
         message.userId.should.equal(client.id);
         message.message.should.equal('Hello');
         done();
-      })
-    })
+      });
+    });
   });
 });
