@@ -209,7 +209,7 @@ const onSetUserName = socket => data => {
   const { newName } = data;
   if (!newName) {
     const message = 'newName not specified.';
-    return emitAppError(socket, 9, message);
+    return emitAppError(socket, e.NO_NAME, message);
   }
 
   socket.userName = newName;

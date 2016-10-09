@@ -320,7 +320,7 @@ describe('API', function() {
 
   describe('set_user_name', function() {
     it('should return error when newName is not specified', function(done) {
-      clientShouldReceiveAppError(client, 9, done);
+      clientShouldReceiveAppError(client, e.NO_NAME, done);
       client.emit(k.SET_USER_NAME, { /* roomName not specified */ });
     });
 
