@@ -12,10 +12,7 @@ import {
 
 describe('API', function() {
   this.timeout(3000);
-  /* All tests here will have a room created */
   let client;
-  let client2;
-  let client3;
 
   beforeEach(function(done) {
     server.listen(3000);
@@ -31,12 +28,6 @@ describe('API', function() {
   afterEach(function(done) {
     client.disconnect();
     server.close();
-    if (client2) {
-      client2.disconnect();
-    }
-    if (client3) {
-      client3.disconnect();
-    }
     done();
   });
 

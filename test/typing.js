@@ -16,11 +16,9 @@ import {
 
 describe('API', function() {
   this.timeout(3000);
-  /* All tests here will have a room created */
   let client;
   let client2;
   /* store the created roomId so tests can join this room */
-  let createdRoom;
   let roomId;
 
   beforeEach(function(done) {
@@ -29,8 +27,7 @@ describe('API', function() {
     client2 = makeClient(io);
     // important that this happens only once during initialization
     client.once(k.CREATE_ROOM, function(room) {
-      createdRoom = room;
-      roomId = createdRoom.roomId;
+      roomId = room.roomId;
       done();
     });
     /* All tests below require a room, create it here */

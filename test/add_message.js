@@ -27,6 +27,8 @@ describe('API', function() {
   beforeEach(function(done) {
     server.listen(3000);
     client = makeClient(io);
+    client2 = makeClient(io);
+    client3 = makeClient(io);
     // important that this happens only once during initialization
     client.once(k.CREATE_ROOM, function(room) {
       createdRoom = room;
@@ -39,13 +41,9 @@ describe('API', function() {
 
   afterEach(function(done) {
     client.disconnect();
+    client2.disconnect();
+    client3.disconnect();
     server.close();
-    if (client2) {
-      client2.disconnect();
-    }
-    if (client3) {
-      client3.disconnect();
-    }
     done();
   });
 
@@ -65,7 +63,6 @@ describe('API', function() {
     });
 
     it('should return error when user is not in room', function(done) {
-      client2 = makeClient(io);
       clientShouldReceiveAppError(client2, e.USER_NOT_IN_ROOM, done);
       client2.emit(k.ADD_MESSAGE, {
         roomId,
@@ -74,7 +71,6 @@ describe('API', function() {
     });
 
     it('should emit add_message event to all users in a room', function(done) {
-      client2 = makeClient(io);
       client2.emit(k.JOIN_ROOM, { roomId });
       client2.emit(k.ADD_MESSAGE, {
         roomId,
@@ -91,7 +87,6 @@ describe('API', function() {
     it('should not send message to other rooms', function(done) {
       // make another room with just client2
       let room2Id;
-      client2 = makeClient(io);
       client2.once(k.CREATE_ROOM, function(room) {
         room2Id = room.roomId;
         // ensure that the rooms are unique
@@ -102,7 +97,6 @@ describe('API', function() {
       clientShouldNotReceiveEvent(client2, k.ADD_MESSAGE);
 
       // client3 joins the room client created
-      client3 = makeClient(io);
       // so a message client3 sends should not go to client2
       client3.emit(k.JOIN_ROOM, { roomId });
       client3.emit(k.ADD_MESSAGE, {
