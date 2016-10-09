@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import * as e from './error_code';
 import * as k from './constants';
 import Room from './models/room';
+import Counsellor from './models/counsellor';
 import logger from './logging';
 
 const app = express();
@@ -27,6 +28,7 @@ const emitAppError = (socket, code, message) => {
 };
 
 const roomIdToRoom : {[roomId:string]: Room} = {};
+let COUNSELLERS = []
 
 /**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
@@ -66,14 +68,14 @@ const onCreateRoom = socket => data => {
   }
 
   const roomId = uuid.v4();
-  const room = new Room(
+  const room = new Room({
     roomId,
     roomName,
     userLimit,
     roomDescription,
     categories,
-    [socket],
-  );
+    sockets: [socket],
+  });
   roomIdToRoom[roomId] = room;
 
   socket.join(roomId, () => {
@@ -198,6 +200,10 @@ const onDisconnect = socket => data => {
         });
       }
     });
+  COUNSELLERS = COUNSELLERS.filter(
+    c => c.socket.id !== socket.id)
+  COUNSELLERS = COUNSELLERS.filter(
+    c => c.socket.id !== socket.id)
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -224,6 +230,58 @@ const onSetUserName = socket => data => {
     });
 };
 
+const onFindCounseller = socket => data => {
+  const counsellersAvailable = COUNSELLERS.filter(
+    c => c.isOnline
+  );
+
+  if (counsellersAvailable.length == 0) {
+    const message = 'No counsellers available';
+    return emitAppError(socket, e.COUNSELLER_UNAVAILABLE, message);
+  }
+
+  // TODO: some sort of selection for counseller, right now just use first
+  const counseller = COUNSELLERS[0];
+
+  const roomId = uuid.v4();
+  const room = new Room({
+    roomId,
+    roomName: 'Chat with counseller',
+    userLimit: 2,
+    roomDescription: '',
+    categories: [],
+    sockets: [socket, counseller.socket],
+  });
+  roomIdToRoom[roomId] = room;
+
+  socket.join(roomId, () => {
+    counseller.socket.join(roomId, () => {
+      socket.emit(k.FIND_COUNSELLER, {
+        ...counseller.toJson,
+        ...room.toJson,
+      });
+      counseller.socket.emit(k.FIND_COUNSELLER, {
+        ...counseller.toJson,
+        ...room.toJson,
+      });
+    });
+  });
+
+}
+
+const onCounsellerOnline = socket => data => {
+  // TODO errors when data not provided
+  COUNSELLERS.push(
+    new Counsellor(
+      data.counsellerId,
+      data.counsellerName,
+      socket,
+    )
+  );
+  // TODO notifications, chat list for counsellor
+  socket.emit(k.COUNSELLER_ONLINE, {});
+};
+
 io.on('connection', function(socket) {
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
@@ -235,6 +293,8 @@ io.on('connection', function(socket) {
   socket.on(k.DISCONNECT, onDisconnect(socket));
   socket.on(k.VIEW_ROOM, onViewRoom(socket));
   socket.on(k.SET_USER_NAME, onSetUserName(socket));
+  socket.on(k.FIND_COUNSELLER, onFindCounseller(socket));
+  socket.on(k.COUNSELLER_ONLINE, onCounsellerOnline(socket));
 });
 
 export {

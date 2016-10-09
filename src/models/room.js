@@ -1,20 +1,27 @@
+const PUBLIC = 0;
+const PRIVATE = 1;
+
 class Room {
   roomId: string;
   roomName: string;
+  roomType: number;
   userLimit: number;
   roomDescription: string;
   categories: string[];
   sockets: string[];
   lastActive: Date;
-  constructor(
+
+  constructor({
       roomId,
       roomName,
       userLimit,
-      roomDescription,
-      categories,
-      sockets:[]) {
+      roomDescription = '',
+      categories = [],
+      sockets = []
+  }) {
     this.roomId = roomId;
     this.roomName = roomName;
+    this.roomType = PUBLIC;
     this.userLimit = userLimit;
     this.roomDescription = roomDescription;
     this.categories = categories;

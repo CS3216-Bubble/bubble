@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
-import should from 'should';
+import should from 'should'; // eslint-disable-line no-unused-vars
+
 import * as e from '../src/error_code';
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
@@ -14,11 +15,7 @@ import {
 
 describe('API', function() {
   this.timeout(3000);
-  /* All tests here will have a room created */
   let client;
-  /* store the created roomId so tests can join this room */
-  let createdRoom;
-  let roomId;
 
   beforeEach(function(done) {
     server.listen(3000);
@@ -49,5 +46,4 @@ describe('API', function() {
       createRoom(client);
     });
   });
-
 });

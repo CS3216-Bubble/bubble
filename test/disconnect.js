@@ -3,10 +3,8 @@ import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as k from '../src/constants';
-import * as e from '../src/error_code';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
-  clientShouldReceiveAppError,
   createRoom,
   makeClient,
 } from './helpers';
@@ -46,23 +44,21 @@ describe('API', function() {
     done();
   });
 
-  describe('set_user_name', function() {
-    it('should return error when newName is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.NO_NAME, done);
-      client.emit(k.SET_USER_NAME, { /* roomName not specified */ });
-    });
-
-    it('should emit set_user_name event to all users in room', function(done) {
-      const newName = 'client 2 name';
+  describe('disconnect', function() {
+    it('should emit EXIT_ROOM to other users in room', function(done) {
       client2 = makeClient(io);
-      client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.SET_USER_NAME, { newName });
-      client.on(k.SET_USER_NAME, data => {
-        data.should.have.keys('userId', 'newName');
-        data.userId.should.equal(client2.id);
-        data.newName.should.equal(newName);
+
+      client.on(k.EXIT_ROOM, data => {
         done();
       });
+
+      client.on(k.JOIN_ROOM, data => {
+        data.should.have.keys('userId');
+        data.userId.should.equal(client2.id);
+        client2.disconnect();
+      });
+
+      client2.emit(k.JOIN_ROOM, { roomId });
     });
   });
 });

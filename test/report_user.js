@@ -2,12 +2,16 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
 
-import * as k from '../src/constants';
 import * as e from '../src/error_code';
+import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
+  ROOM_KEYS,
+  clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
+  errorRoomIdNotFound,
+  errorWithoutRoomId,
   makeClient,
 } from './helpers';
 
@@ -46,23 +50,10 @@ describe('API', function() {
     done();
   });
 
-  describe('set_user_name', function() {
-    it('should return error when newName is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.NO_NAME, done);
-      client.emit(k.SET_USER_NAME, { /* roomName not specified */ });
-    });
-
-    it('should emit set_user_name event to all users in room', function(done) {
-      const newName = 'client 2 name';
-      client2 = makeClient(io);
-      client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.SET_USER_NAME, { newName });
-      client.on(k.SET_USER_NAME, data => {
-        data.should.have.keys('userId', 'newName');
-        data.userId.should.equal(client2.id);
-        data.newName.should.equal(newName);
-        done();
-      });
-    });
+  describe('report_user', function() {
+    it('should return error when room id is not specified');
+    it('should return error when user to report is not specified');
+    it('should return error when reason is not specified');
+    // TODO it('should emit user_reported event to all other users in a room');
   });
 });

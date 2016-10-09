@@ -3,11 +3,12 @@ import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as k from '../src/constants';
-import * as e from '../src/error_code';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
-  clientShouldReceiveAppError,
+  ROOM_KEYS,
   createRoom,
+  errorRoomIdNotFound,
+  errorWithoutRoomId,
   makeClient,
 } from './helpers';
 
@@ -46,23 +47,21 @@ describe('API', function() {
     done();
   });
 
-  describe('set_user_name', function() {
-    it('should return error when newName is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.NO_NAME, done);
-      client.emit(k.SET_USER_NAME, { /* roomName not specified */ });
-    });
+  describe('view_room', function() {
+    it('should return error when room id is not specified',
+      done => errorWithoutRoomId(client, k.VIEW_ROOM, done));
 
-    it('should emit set_user_name event to all users in room', function(done) {
-      const newName = 'client 2 name';
-      client2 = makeClient(io);
-      client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.SET_USER_NAME, { newName });
-      client.on(k.SET_USER_NAME, data => {
-        data.should.have.keys('userId', 'newName');
-        data.userId.should.equal(client2.id);
-        data.newName.should.equal(newName);
+    it('should return error when room is private (counsellor)');
+
+    it('should return error when room id cannot be found',
+      done => errorRoomIdNotFound(client, k.VIEW_ROOM, done));
+
+    it('should return room details', function(done) {
+      client.on(k.VIEW_ROOM, data => {
+        data.should.have.keys(...ROOM_KEYS);
         done();
       });
+      client.emit(k.VIEW_ROOM, { roomId });
     });
   });
 });

@@ -9,7 +9,6 @@ const ROOM_KEYS = [
   'categories', 'numberOfUsers', 'lastActive',
 ];
 
-
 /**
  * Ensures that client does not received specified event.
  * @param {object} client socket.io client
@@ -83,12 +82,24 @@ function createRoom(client, opts = {}) {
 
 /**
  * Creates a socket.io client on default host and port
+ * @param {object} io socket.io
  * @return {object} socket.io client
  */
 function makeClient(io) {
   return io.connect("http://localhost:3000", {
     transports: ['websocket'],
   });
+}
+
+const uuid4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+/**
+ * Tests that str is a UUID4
+ * @param {string} str a string to test
+ * @return {bool} if str is a UUID4
+ */
+function matchUuid4(str) {
+  return str && uuid4Regex.test(str);
 }
 
 export {
@@ -99,4 +110,6 @@ export {
   errorRoomIdNotFound,
   errorWithoutRoomId,
   makeClient,
+  matchUuid4,
+  uuid4Regex,
 };
