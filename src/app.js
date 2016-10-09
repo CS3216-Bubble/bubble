@@ -169,7 +169,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_MESSAGE, message);
   }
 
-  room.touch(); // update lastActive
+  room.addMessage(socket.id, message);
 
   socket.to(room.roomId).emit(k.ADD_MESSAGE, {
     roomId: room.roomId,

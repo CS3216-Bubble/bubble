@@ -27,6 +27,7 @@ class Room {
     this.categories = categories;
     this.sockets = sockets;
     this.lastActive = new Date();
+    this.messages = [];
   }
 
   get numberOfUsers() {
@@ -53,6 +54,15 @@ class Room {
     this.lastActive = new Date();
   }
 
+  addMessage(userId, message) {
+    this.messages.push({
+      userId,
+      message,
+      date: new Date(),
+    });
+    this.touch();
+  }
+
   get toJson() {
     return {
       roomId: this.roomId,
@@ -63,6 +73,7 @@ class Room {
       categories: this.categories,
       numberOfUsers: this.numberOfUsers,
       lastActive: this.lastActive.toISOString(),
+      messages: this.messages,
     };
   }
 

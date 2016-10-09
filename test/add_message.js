@@ -127,5 +127,21 @@ describe('API', function() {
       });
       client.emit(k.VIEW_ROOM, { roomId });
     });
+
+    it('should update messages in room', function(done) {
+      client.emit(k.ADD_MESSAGE, {
+        roomId,
+        message: 'Hello',
+      });
+      client.emit(k.VIEW_ROOM, { roomId });
+      client.on(k.VIEW_ROOM, room => {
+        room.messages.should.have.length(1);
+        const message = room.messages[0];
+        message.should.have.keys('userId', 'message', 'date');
+        message.userId.should.equal(client.id);
+        message.message.should.equal('Hello');
+        done();
+      })
+    })
   });
 });
