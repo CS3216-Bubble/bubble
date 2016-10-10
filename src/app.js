@@ -9,8 +9,7 @@ import * as e from './error_code';
 import * as k from './constants';
 import Room from './models/room';
 import ROOM_TYPE from './models/room_type';
-import ISSUE_TYPE from './models/issue_type';
-import Issue, { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
+import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import Counsellor from './models/counsellor';
 import logger from './logging';
 
@@ -265,7 +264,7 @@ const onFindCounsellor = socket => data => {
     // If there are no counsellors available, we want to create an issue
     // to track that a user request was missed.
     // The next time a counsellor logs in we can deliver a notification.
-    const issue = newMissedUserIssue({ userId: socket.id });
+    const issue = newMissedUserIssue({ userId: socket.id }); // eslint-disable-line no-unused-vars
     // TODO now save this issue somewhere
     const message = 'No counsellors available';
     return emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
@@ -275,7 +274,7 @@ const onFindCounsellor = socket => data => {
   const counsellor = COUNSELLORS[0];
 
   // create an issue to track this match
-  const issue = newUserRequestedIssue({
+  const issue = newUserRequestedIssue({ // eslint-disable-line no-unused-vars
     userId: socket.id,
     counsellorId: counsellor.id,
   });
