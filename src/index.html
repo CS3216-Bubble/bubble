@@ -4,9 +4,9 @@
     <title>Socket.IO chat</title>
     <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font: 13px Helvetica, Arial; }
-form { background: #000; padding: 3px; width: 100%; }
-form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+body { max-width: 960px; font: 16px Helvetica, Arial; }
+form { padding: 3px; width: 100%; }
+form input { padding: 10px; width: 90%; margin-right: .5%; }
 form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
 #messages { list-style-type: none; margin: 0; padding: 0; }
 #messages li { padding: 5px 10px; }
@@ -15,6 +15,21 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
   </head>
   <body>
     <h2>Current room: <span id="currentRoom">No Room</span></h2>
+    <h2 id="conline"></h2>
+    <p id="clist"></p>
+
+    <form id="jac" action="">
+      <label for="cid">Counsellor Id</label>
+      <input id="cid" autocomplete="off" value="123" />
+      <label for="cname">Counsellor Name</label>
+      <input id="cname" autocomplete="off" value="ccc" />
+      <button>join as counsellor</button>
+    </form>
+
+    <form id="fc" action="">
+      <button>Find counsellor</button>
+    </form>
+
     <form id="list" action="">
       <button>list</button>
     </form>
@@ -38,6 +53,7 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
       <script>
       var roomId;
       var currentRoom = $('#currentRoom');
+      var isCounsellor = false;
 
       var socket = io();
 
@@ -98,6 +114,42 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
         $('#m').val('');
         return false;
       });
+
+      $('#fc').submit(function() {
+        socket.emit('find_counsellor', {})
+        return false;
+      })
+
+      socket.on('find_counsellor', function(data) {
+        console.log(data);
+        if (!isCounsellor) {
+          $('#clist').html(`
+              Chatting with
+              <p>${data.counsellorId}</p>
+              <p>${data.counsellorName}</p>
+          `);
+        } else {
+          $('#clist').html(`
+              Chatting with
+              <p>${data.userId}</p>
+          `);
+        }
+
+        currentRoom.text(data.roomId);
+      })
+
+      $('#jac').submit(function() {
+        socket.emit('counsellor_online', {
+          counsellorId: $('#cid').val(),
+          counsellorName: $('#cname').val(),
+        })
+        isCounsellor = true;
+        return false;
+      })
+
+      socket.on('counsellor_online', function(data) {
+        $('#conline').text('Online as Counsellor');
+      })
       </script>
   </body>
 </html>
