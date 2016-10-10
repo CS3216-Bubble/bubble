@@ -9,6 +9,8 @@ import * as e from './error_code';
 import * as k from './constants';
 import Room from './models/room';
 import ROOM_TYPE from './models/room_type';
+import ISSUE_TYPE from './models/issue_type';
+import Issue, { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import Counsellor from './models/counsellor';
 import logger from './logging';
 
@@ -260,12 +262,24 @@ const onFindCounseller = socket => data => {
   );
 
   if (counsellersAvailable.length === 0) {
+    // If there are no counsellors available, we want to create an issue
+    // to track that a user request was missed.
+    // The next time a counsellor logs in we can deliver a notification.
+    const issue = newMissedUserIssue({ userId: socket.id });
+    // TODO now save this issue somewhere
     const message = 'No counsellers available';
     return emitAppError(socket, e.COUNSELLER_UNAVAILABLE, message);
   }
 
   // TODO: some sort of selection for counseller, right now just use first
   const counseller = COUNSELLERS[0];
+
+  // create an issue to track this match
+  const issue = newUserRequestedIssue({
+    userId: socket.id,
+    counsellerId: counseller.id,
+  });
+  // TODO: save this issue somewhere
 
   const roomId = uuid.v4();
   const room = new Room({
