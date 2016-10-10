@@ -58,7 +58,7 @@ describe('API', function() {
       client3.emit(k.JOIN_ROOM, { roomId: roomId });
     });
 
-    it('should return error when room is private (counseller)');
+    it('should return error when room is private (counsellor)');
     it('should return error when user is already in another room');
     it('should return error if user is already in room', function(done) {
       clientShouldNotReceiveEvent(client, k.JOIN_ROOM);

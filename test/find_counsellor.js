@@ -13,64 +13,64 @@ import {
   uuid4Regex,
 } from './helpers';
 
-const counsellerId = '123';
-const counsellerName = 'CC';
+const counsellorId = '123';
+const counsellorName = 'CC';
 
 describe('API', function() {
   this.timeout(3000);
   let client;
-  let counseller;
+  let counsellor;
 
   beforeEach(function(done) {
     server.listen(3000);
     client = makeClient(io);
-    counseller = makeClient(io);
+    counsellor = makeClient(io);
     done();
   });
 
   afterEach(function(done) {
     client.disconnect();
-    counseller.disconnect();
+    counsellor.disconnect();
     server.close();
     done();
   });
 
-  describe('find_counseller', function() {
-    it('should return error if no counseller is available', function(done) {
-      clientShouldNotReceiveEvent(client, k.FIND_COUNSELLER);
-      clientShouldReceiveAppError(client, e.COUNSELLER_UNAVAILABLE, done);
-      client.emit(k.FIND_COUNSELLER);
+  describe('find_counsellor', function() {
+    it('should return error if no counsellor is available', function(done) {
+      clientShouldNotReceiveEvent(client, k.FIND_COUNSELLOR);
+      clientShouldReceiveAppError(client, e.COUNSELLOR_UNAVAILABLE, done);
+      client.emit(k.FIND_COUNSELLOR);
     });
 
-    describe('with counseller online', function() {
+    describe('with counsellor online', function() {
       beforeEach(function(done) {
-        // counseller comes online
-        counseller.emit(k.COUNSELLER_ONLINE, {
-          counsellerId,
-          counsellerName,
+        // counsellor comes online
+        counsellor.emit(k.COUNSELLOR_ONLINE, {
+          counsellorId,
+          counsellorName,
         });
-        counseller.on(k.COUNSELLER_ONLINE, () => done());
+        counsellor.on(k.COUNSELLOR_ONLINE, () => done());
       });
 
-      it('should create a chat room with counseller', function(done) {
-        client.on(k.FIND_COUNSELLER, data => {
+      it('should create a chat room with counsellor', function(done) {
+        client.on(k.FIND_COUNSELLOR, data => {
           data.should.have.keys(
-            'counsellerId', 'counsellerName', 'roomId', 'roomType', 'userLimit');
+            'counsellorId', 'counsellorName', 'roomId', 'roomType', 'userLimit');
           data.roomId.should.match(uuid4Regex);
           data.roomType.should.equal(ROOM_TYPE.PRIVATE, 'room type should be private');
           data.userLimit.should.equal(2, 'room can only have 2 users');
-          data.counsellerId.should.equal(counsellerId);
-          data.counsellerName.should.equal(counsellerName);
+          data.counsellorId.should.equal(counsellorId);
+          data.counsellorName.should.equal(counsellorName);
           done();
         });
 
-        client.emit(k.FIND_COUNSELLER);
+        client.emit(k.FIND_COUNSELLOR);
       });
 
-      it('if client sends message, counseller gets it', function(done) {
+      it('if client sends message, counsellor gets it', function(done) {
         let roomId;
 
-        client.on(k.FIND_COUNSELLER, data => {
+        client.on(k.FIND_COUNSELLOR, data => {
           roomId = data.roomId;
           client.emit(k.ADD_MESSAGE, {
             roomId,
@@ -78,7 +78,7 @@ describe('API', function() {
           });
         });
 
-        counseller.on(k.ADD_MESSAGE, data => {
+        counsellor.on(k.ADD_MESSAGE, data => {
           data.should.have.keys('userId', 'message');
           data.userId.should.equal(client.id);
           data.message.should.equal('Hello');
@@ -89,7 +89,7 @@ describe('API', function() {
           should.fail(`should not have error ${data.message}`);
         });
 
-        client.emit(k.FIND_COUNSELLER);
+        client.emit(k.FIND_COUNSELLOR);
       });
     });
   });

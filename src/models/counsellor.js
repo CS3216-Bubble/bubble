@@ -38,8 +38,8 @@ class Counsellor {
     }
 
     return {
-      counsellerId: this.counsellorId,
-      counsellerName: this.counsellorName,
+      counsellorId: this.counsellorId,
+      counsellorName: this.counsellorName,
       lastOnline,
     };
   }

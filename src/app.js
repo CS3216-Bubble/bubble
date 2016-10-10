@@ -31,7 +31,7 @@ const emitAppError = (socket, code, message) => {
 };
 
 const roomIdToRoom : {[roomId:string]: Room} = {};
-let COUNSELLERS = [];
+let COUNSELLORS = [];
 
 /**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
@@ -226,9 +226,9 @@ const onDisconnect = socket => data => {
         });
       }
     });
-  COUNSELLERS = COUNSELLERS.filter(
+  COUNSELLORS = COUNSELLORS.filter(
     c => c.socket.id !== socket.id);
-  COUNSELLERS = COUNSELLERS.filter(
+  COUNSELLORS = COUNSELLORS.filter(
     c => c.socket.id !== socket.id);
 };
 
@@ -256,68 +256,68 @@ const onSetUserName = socket => data => {
     });
 };
 
-const onFindCounseller = socket => data => {
-  const counsellersAvailable = COUNSELLERS.filter(
+const onFindCounsellor = socket => data => {
+  const counsellorsAvailable = COUNSELLORS.filter(
     c => c.isOnline
   );
 
-  if (counsellersAvailable.length === 0) {
+  if (counsellorsAvailable.length === 0) {
     // If there are no counsellors available, we want to create an issue
     // to track that a user request was missed.
     // The next time a counsellor logs in we can deliver a notification.
     const issue = newMissedUserIssue({ userId: socket.id });
     // TODO now save this issue somewhere
-    const message = 'No counsellers available';
-    return emitAppError(socket, e.COUNSELLER_UNAVAILABLE, message);
+    const message = 'No counsellors available';
+    return emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
   }
 
-  // TODO: some sort of selection for counseller, right now just use first
-  const counseller = COUNSELLERS[0];
+  // TODO: some sort of selection for counsellor, right now just use first
+  const counsellor = COUNSELLORS[0];
 
   // create an issue to track this match
   const issue = newUserRequestedIssue({
     userId: socket.id,
-    counsellerId: counseller.id,
+    counsellorId: counsellor.id,
   });
   // TODO: save this issue somewhere
 
   const roomId = uuid.v4();
   const room = new Room({
     roomId,
-    roomName: 'Chat with counseller',
+    roomName: 'Chat with counsellor',
     roomType: ROOM_TYPE.PRIVATE,
     userLimit: 2,
     roomDescription: '',
     categories: [],
-    sockets: [socket, counseller.socket],
+    sockets: [socket, counsellor.socket],
   });
   roomIdToRoom[roomId] = room;
 
   socket.join(roomId, () => {
-    counseller.socket.join(roomId, () => {
-      socket.emit(k.FIND_COUNSELLER, {
-        ...counseller.toJson,
+    counsellor.socket.join(roomId, () => {
+      socket.emit(k.FIND_COUNSELLOR, {
+        ...counsellor.toJson,
         ...room.toJson,
       });
-      counseller.socket.emit(k.FIND_COUNSELLER, {
-        ...counseller.toJson,
+      counsellor.socket.emit(k.FIND_COUNSELLOR, {
+        ...counsellor.toJson,
         ...room.toJson,
       });
     });
   });
 };
 
-const onCounsellerOnline = socket => data => {
+const onCounsellorOnline = socket => data => {
   // TODO errors when data not provided
-  COUNSELLERS.push(
+  COUNSELLORS.push(
     new Counsellor(
-      data.counsellerId,
-      data.counsellerName,
+      data.counsellorId,
+      data.counsellorName,
       socket,
     )
   );
   // TODO notifications, chat list for counsellor
-  socket.emit(k.COUNSELLER_ONLINE, {});
+  socket.emit(k.COUNSELLOR_ONLINE, {});
 };
 
 const onReportUser = ensureRoomExists(socket => data => {
@@ -353,8 +353,8 @@ io.on('connection', function(socket) {
   socket.on(k.DISCONNECT, onDisconnect(socket));
   socket.on(k.VIEW_ROOM, onViewRoom(socket));
   socket.on(k.SET_USER_NAME, onSetUserName(socket));
-  socket.on(k.FIND_COUNSELLER, onFindCounseller(socket));
-  socket.on(k.COUNSELLER_ONLINE, onCounsellerOnline(socket));
+  socket.on(k.FIND_COUNSELLOR, onFindCounsellor(socket));
+  socket.on(k.COUNSELLOR_ONLINE, onCounsellorOnline(socket));
   socket.on(k.REPORT_USER, onReportUser(socket));
 });
 
