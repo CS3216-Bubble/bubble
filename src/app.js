@@ -299,6 +299,7 @@ const onFindCounsellor = socket => data => {
         ...room.toJson,
       });
       counsellor.socket.emit(k.FIND_COUNSELLOR, {
+        userId: socket.id,
         ...counsellor.toJson,
         ...room.toJson,
       });
