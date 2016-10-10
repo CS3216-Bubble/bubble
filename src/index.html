@@ -14,6 +14,7 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
     </style>
   </head>
   <body>
+    <h2>Current room: <span id="currentRoom">No Room</span></h2>
     <form id="list" action="">
       <button>list</button>
     </form>
@@ -36,6 +37,7 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
       <script>
       var roomId;
+      var currentRoom = $('#currentRoom');
 
       var socket = io();
 
@@ -47,6 +49,7 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
       socket.on('create_room', function(msg){
         console.log(`room created ${msg.roomId}`);
         roomId = msg.roomId;
+        currentRoom.text(roomId);
       });
 
       socket.on('join_room', function(msg){
@@ -75,19 +78,22 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
       });
 
       $('form#join').submit(function(){
+        roomId = $('#joinroomid').val();
         socket.emit('join_room', {
-          roomId: $('#joinroomid').val(),
+          roomId,
         });
+        currentRoom.text(roomId);
         return false;
       });
 
       $('form#send').submit(function(){
+        const message = $('#m').val();
         socket.emit('add_message', {
-          roomId: $('#joinroomid').val(),
-          message: $('#m').val(),
+          roomId: currentRoom.text(),
+          message,
         });
         $('#messages').append(
-            `<li>${msg.userId}: "${msg.message}"</li>`
+            `<li>${socket.id}: "${message}"</li>`
         )
         $('#m').val('');
         return false;
