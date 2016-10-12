@@ -85,7 +85,6 @@ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 
       })
 
       $('form#create').submit(function(){
-        socket.emit('create_room', $('#roomname').val());
         socket.emit('create_room', {
           roomName: $('#roomname').val(),
           roomDescription: 'description',
