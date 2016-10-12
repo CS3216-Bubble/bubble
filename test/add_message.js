@@ -72,9 +72,11 @@ describe('API', function() {
 
     it('should emit add_message event to all users in a room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: 'Hello',
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
       });
       client.on(k.ADD_MESSAGE, data => {
         data.should.have.keys('userId', 'message');
@@ -99,9 +101,11 @@ describe('API', function() {
       // client3 joins the room client created
       // so a message client3 sends should not go to client2
       client3.emit(k.JOIN_ROOM, { roomId });
-      client3.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: 'Hello',
+      client.on(k.JOIN_ROOM, () => {
+        client3.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
       });
       client.on(k.ADD_MESSAGE, data => {
         data.userId.should.equal(client3.id);
@@ -127,12 +131,23 @@ describe('API', function() {
         roomId,
         message: 'Hello',
       });
-      client.emit(k.VIEW_ROOM, { roomId });
+
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
+      });
+
+      client.on(k.ADD_MESSAGE, () => {
+        client.emit(k.VIEW_ROOM, { roomId });
+      });
       client.on(k.VIEW_ROOM, room => {
         room.messages.should.have.length(1);
         const message = room.messages[0];
         message.should.have.keys('userId', 'message', 'date');
-        message.userId.should.equal(client.id);
+        message.userId.should.equal(client2.id);
         message.message.should.equal('Hello');
         done();
       });

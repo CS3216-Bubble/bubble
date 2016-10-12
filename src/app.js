@@ -12,10 +12,12 @@ import ROOM_TYPE from './models/room_type';
 import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import Counsellor from './models/counsellor';
 import logger from './logging';
+import { RoomDB } from './database';
 
 const app = express();
 const server = createServer(app);
 const io = socketio(server);
+const SOCKETS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -48,12 +50,35 @@ const ensureRoomExists = nextFn => socket => data => {
     return emitAppError(socket, e.NO_ROOM_ID, message);
   }
 
-  if (!Object.keys(roomIdToRoom).includes(roomId)) {
-    const message = `Room ${roomId} cannot be found.`;
-    return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
-  }
-
-  return nextFn(socket)({...data, room: roomIdToRoom[roomId]});
+  RoomDB.findOne({
+    where: {
+      roomId
+    },
+  })
+    .then(r => {
+      if (r === null) {
+        const message = `Room ${roomId} cannot be found.`;
+        return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
+      }
+      const room = new Room({
+        roomId,
+        roomName: r.roomName,
+        roomType: r.roomType,
+        userLimit: r.userLimit,
+        roomDescription: r.roomDescription,
+        categories: JSON.parse(r.categories),
+        socketIds: JSON.parse(r.socketIds),
+        lastActive: r.lastActive,
+        messages: JSON.parse(r.messages),
+      });
+      roomIdToRoom[room.roomId] = room;
+      nextFn(socket)({...data, room: room});
+    })
+    .catch(err => {
+      console.error(err);
+      const message = `Room ${roomId} cannot be found.`;
+      emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
+    });
 };
 
 const onCreateRoom = socket => data => {
@@ -76,13 +101,20 @@ const onCreateRoom = socket => data => {
     userLimit,
     roomDescription,
     categories,
-    sockets: [socket],
+    socketIds: [socket.id],
   });
-  roomIdToRoom[roomId] = room;
 
-  socket.join(roomId, () => {
-    socket.emit(k.CREATE_ROOM, room.toJson);
-  });
+  room.save(RoomDB)
+    .then(
+      r => {
+        roomIdToRoom[roomId] = room;
+
+        socket.join(roomId, () => {
+          socket.emit(k.CREATE_ROOM, room.toJson);
+        });
+      }
+    )
+    .catch(e => console.error(e));
 };
 
 const onJoinRoom = ensureRoomExists(socket => data => {
@@ -101,11 +133,12 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   }
 
   room.addUser(socket);
-
-  socket.join(room.roomId, () => {
-    socket.to(room.roomId).emit(k.JOIN_ROOM, {
-      roomId: room.roomId,
-      userId: socket.id,
+  room.save(RoomDB).then(() => {
+    socket.join(room.roomId, () => {
+      socket.to(room.roomId).emit(k.JOIN_ROOM, {
+        roomId: room.roomId,
+        userId: socket.id,
+      });
     });
   });
 });
@@ -119,6 +152,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
   }
 
   room.removeUser(socket);
+  room.save(RoomDB);
 
   socket.leave(room.roomId, () => {
     socket.to(room.roomId).emit(k.EXIT_ROOM, {
@@ -160,23 +194,25 @@ const onAddMessage = ensureRoomExists(socket => data => {
   const room = data.room;
   const { message } = data;
 
-  if (!room.isUserHere(socket)) {
-    const message = `User ${socket.id} is not in room ${room.roomId}`;
-    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
-  }
-
   if (!message) {
     const message = `No message specified.`;
     return emitAppError(socket, e.NO_MESSAGE, message);
   }
 
-  room.addMessage(socket.id, message);
+  if (!room.isUserHere(socket)) {
+    const message = `User ${socket.id} is not in room ${room.roomId}`;
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
+  }
 
-  socket.to(room.roomId).emit(k.ADD_MESSAGE, {
-    roomId: room.roomId,
-    userId: socket.id,
-    message,
-  });
+  room.addMessage(socket.id, message);
+  room.save(RoomDB)
+    .then(() => {
+      socket.to(room.roomId).emit(k.ADD_MESSAGE, {
+        roomId: room.roomId,
+        userId: socket.id,
+        message,
+      });
+    });
 });
 
 const onAddReaction = ensureRoomExists(socket => data => {
@@ -288,9 +324,10 @@ const onFindCounsellor = socket => data => {
     userLimit: 2,
     roomDescription: '',
     categories: [],
-    sockets: [socket, counsellor.socket],
+    socketIds: [socket.id, counsellor.socket.id],
   });
   roomIdToRoom[roomId] = room;
+  room.save(RoomDB);
 
   socket.join(roomId, () => {
     counsellor.socket.join(roomId, () => {
@@ -342,6 +379,7 @@ const onReportUser = ensureRoomExists(socket => data => {
 });
 
 io.on('connection', function(socket) {
+  SOCKETS[socket.id] = socket;
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));

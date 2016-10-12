@@ -59,8 +59,10 @@ describe('API', function() {
         data.userId.should.equal(client2.id);
         done();
       });
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.EXIT_ROOM, { roomId });
+      });
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.EXIT_ROOM, { roomId });
     });
 
     it('should update room member list');

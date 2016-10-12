@@ -47,7 +47,9 @@ describe('API', function() {
     it('should emit set_user_name event to all users in room', function(done) {
       const newName = 'client 2 name';
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.SET_USER_NAME, { newName });
+      client.on(k.JOIN_ROOM, data => {
+        client2.emit(k.SET_USER_NAME, { newName });
+      });
       client.on(k.SET_USER_NAME, data => {
         data.should.have.keys('userId', 'newName');
         data.userId.should.equal(client2.id);

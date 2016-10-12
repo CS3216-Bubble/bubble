@@ -51,11 +51,14 @@ describe('API', function() {
       done => errorRoomIdNotFound(client, k.JOIN_ROOM, done));
 
     it('should return error when room limit is reached', function(done) {
-      // the default room has a user limit of 3
+      // the default room has a user limit of 2
       clientShouldNotReceiveEvent(client2, k.JOIN_ROOM);
       clientShouldReceiveAppError(client3, e.ROOM_FULL, done);
       client2.emit(k.JOIN_ROOM, { roomId: roomId });
-      client3.emit(k.JOIN_ROOM, { roomId: roomId });
+      client.on(k.JOIN_ROOM, () => {
+        // after client sees that client2 has joined
+        client3.emit(k.JOIN_ROOM, { roomId: roomId });
+      });
     });
 
     it('should return error when room is private (counsellor)');

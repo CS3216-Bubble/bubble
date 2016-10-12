@@ -64,9 +64,11 @@ describe('API', function() {
 
     it('should emit add_reaction event to all users in a room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.ADD_REACTION, {
-        roomId,
-        reaction: REACTION_TYPE.THANK,
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_REACTION, {
+          roomId,
+          reaction: REACTION_TYPE.THANK,
+        });
       });
       client.on(k.ADD_REACTION, data => {
         data.should.have.keys('userId', 'roomId', 'reaction');
@@ -79,9 +81,11 @@ describe('API', function() {
 
     it('should not emit add_reaction event to users in other room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
-      client2.emit(k.ADD_REACTION, {
-        roomId,
-        reaction: REACTION_TYPE.THANK,
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_REACTION, {
+          roomId,
+          reaction: REACTION_TYPE.THANK,
+        });
       });
       clientShouldNotReceiveEvent(client3, k.ADD_REACTION);
       client.on(k.ADD_REACTION, () => done());
