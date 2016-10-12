@@ -12,7 +12,7 @@ import ROOM_TYPE from './models/room_type';
 import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import Counsellor from './models/counsellor';
 import logger from './logging';
-import { RoomDB } from './database';
+import { RoomDB, MessageDB } from './database';
 
 const app = express();
 const server = createServer(app);
@@ -54,6 +54,7 @@ const ensureRoomExists = nextFn => socket => data => {
     where: {
       roomId
     },
+    include: [MessageDB],
   })
     .then(r => {
       if (r === null) {
@@ -69,7 +70,7 @@ const ensureRoomExists = nextFn => socket => data => {
         categories: JSON.parse(r.categories),
         socketIds: JSON.parse(r.socketIds),
         lastActive: r.lastActive,
-        messages: JSON.parse(r.messages),
+        messages: r.messages.map(m => m.dataValues),
       });
       roomIdToRoom[room.roomId] = room;
       nextFn(socket)({...data, room: room});
@@ -204,15 +205,16 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
-  room.addMessage(socket.id, message);
-  room.save(RoomDB)
+  room.addMessage(socket.id, message)
+    .then(() => room.save(RoomDB))
     .then(() => {
       socket.to(room.roomId).emit(k.ADD_MESSAGE, {
         roomId: room.roomId,
         userId: socket.id,
         message,
       });
-    });
+    })
+    .catch(e => console.error(e));
 });
 
 const onAddReaction = ensureRoomExists(socket => data => {
@@ -229,13 +231,17 @@ const onAddReaction = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_REACTION, message);
   }
 
-  room.addReaction(socket.id, reaction);
+  room.addReaction(socket.id, reaction)
+    .then(() => room.save(RoomDB))
+    .then(() => {
+      socket.to(room.roomId).emit(k.ADD_REACTION, {
+        roomId: room.roomId,
+        userId: socket.id,
+        reaction,
+      });
+    })
+    .catch(e => console.error(e));
 
-  socket.to(room.roomId).emit(k.ADD_REACTION, {
-    roomId: room.roomId,
-    userId: socket.id,
-    reaction,
-  });
 });
 
 const onListRooms = socket => data => {

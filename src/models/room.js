@@ -1,5 +1,6 @@
 import ROOM_TYPE from './room_type';
 import MESSAGE_TYPE from './message_type';
+import { MessageDB } from '../database';
 
 class Room {
   roomId: string;
@@ -65,6 +66,12 @@ class Room {
       date: new Date(),
     });
     this.touch();
+    return MessageDB.create({
+      userId,
+      messageType: MESSAGE_TYPE.MESSAGE,
+      content: message,
+      roomRoomId: this.roomId
+    });
   }
 
   addReaction(userId, reaction) {
@@ -75,12 +82,18 @@ class Room {
       date: new Date(),
     });
     this.touch();
+    return MessageDB.create({
+      userId,
+      messageType: MESSAGE_TYPE.REACTION,
+      content: reaction,
+      roomRoomId: this.roomId
+    });
   }
 
   preSave(values) {
     values.categories = JSON.stringify(values.categories);
     values.socketIds = JSON.stringify(values.socketIds);
-    values.messages = JSON.stringify(values.messages);
+    // values.messages = JSON.stringify(values.messages);
     return values;
   }
 

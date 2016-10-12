@@ -2,6 +2,8 @@ import Sequelize from 'sequelize';
 import dotenv from 'dotenv';
 import process from 'process';
 
+import MESSAGE_TYPE from './models/message_type';
+
 switch (process.env.NODE_ENV) {
   case 'prod':
     dotenv.config({ path: './prod.env' });
@@ -26,19 +28,29 @@ const database = new Sequelize(
 
 const RoomDB = database.define('room', {
   roomId: { type: Sequelize.STRING, primaryKey: true },
-  roomName: Sequelize.STRING,
+  roomName: { type: Sequelize.STRING, allowNull: false },
   roomType: Sequelize.ENUM(0, 1), // eslint-disable-line new-cap
   userLimit: Sequelize.INTEGER,
   roomDescription: Sequelize.TEXT,
   categories: Sequelize.STRING,
   socketIds: Sequelize.STRING,
   lastActive: Sequelize.DATE,
-  messages: Sequelize.STRING,
 });
+
+const MessageDB = database.define('message', {
+  userId: { type: Sequelize.STRING, allowNull: false }, // socket id
+  messageType: Sequelize.ENUM(
+    MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION), // eslint-disable-line new-cap
+  content: { type: Sequelize.TEXT, allowNull: false },
+});
+
+RoomDB.hasMany(MessageDB);
+// MessageDB.belongsTo(RoomDB);
 
 database.sync();
 
 export default database;
 export {
+  MessageDB,
   RoomDB,
 };

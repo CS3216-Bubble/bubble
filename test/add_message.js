@@ -4,6 +4,7 @@ import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as e from '../src/error_code';
 import * as k from '../src/constants';
+import MESSAGE_TYPE from '../src/models/message_type';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
   clientShouldNotReceiveEvent,
@@ -127,11 +128,6 @@ describe('API', function() {
     });
 
     it('should update messages in room', function(done) {
-      client.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: 'Hello',
-      });
-
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {
         client2.emit(k.ADD_MESSAGE, {
@@ -146,9 +142,11 @@ describe('API', function() {
       client.on(k.VIEW_ROOM, room => {
         room.messages.should.have.length(1);
         const message = room.messages[0];
-        message.should.have.keys('userId', 'message', 'date');
+        message.should.have.keys(
+          'userId', 'content', 'createdAt', 'messageType');
         message.userId.should.equal(client2.id);
-        message.message.should.equal('Hello');
+        message.messageType.should.equal(MESSAGE_TYPE.MESSAGE);
+        message.content.should.equal('Hello');
         done();
       });
     });

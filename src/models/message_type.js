@@ -1,5 +1,5 @@
-const MESSAGE = 0;
-const REACTION = 1;
+const MESSAGE = 'MESSAGE';
+const REACTION = 'REACTION';
 
 const MESSAGE_TYPE = {
   MESSAGE,
