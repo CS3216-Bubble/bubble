@@ -9,14 +9,15 @@ import * as e from './error_code';
 import * as k from './constants';
 import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
+import USER_TYPE from './models/user_type';
 import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
-import Counsellor from './models/counsellor';
 import logger from './logging';
-import { RoomDB, MessageDB, SocketDB } from './database';
+import { RoomDB, MessageDB, SocketDB, UserDB } from './database';
 
 const app = express();
 const server = createServer(app);
 const io = socketio(server);
+const SOCKETS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -29,8 +30,6 @@ const emitAppError = (socket, code, message) => {
     message,
   });
 };
-
-let COUNSELLORS = [];
 
 /**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
@@ -286,11 +285,6 @@ const onDisconnect = socket => data => {
   });
   }
 
-  COUNSELLORS = COUNSELLORS.filter(
-    c => c.socket.id !== socket.id);
-  COUNSELLORS = COUNSELLORS.filter(
-    c => c.socket.id !== socket.id);
-
   SocketDB.findById(socket.id)
     .then((socket => {
       if (socket !== null) {
@@ -298,6 +292,7 @@ const onDisconnect = socket => data => {
         socket.save();
       }
     }));
+  delete SOCKETS[socket.id];
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -325,71 +320,95 @@ const onSetUserName = socket => data => {
 };
 
 const onFindCounsellor = socket => data => {
-  const counsellorsAvailable = COUNSELLORS.filter(
-    c => c.isOnline
-  );
-
-  if (counsellorsAvailable.length === 0) {
-    // If there are no counsellors available, we want to create an issue
-    // to track that a user request was missed.
-    // The next time a counsellor logs in we can deliver a notification.
-    const issue = newMissedUserIssue({ userId: socket.id }); // eslint-disable-line no-unused-vars
-    // TODO now save this issue somewhere
-    const message = 'No counsellors available';
-    return emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
-  }
-
-  // TODO: some sort of selection for counsellor, right now just use first
-  const counsellor = COUNSELLORS[0];
-
-  // create an issue to track this match
-  const issue = newUserRequestedIssue({ // eslint-disable-line no-unused-vars
-    userId: socket.id,
-    counsellorId: counsellor.id,
-  });
-  // TODO: save this issue somewhere
-
-  const roomId = uuid.v4();
-
-  RoomDB.create({
-    roomId,
-    roomName: 'Chat with counsellor',
-    roomType: ROOM_TYPE.PRIVATE,
-    userLimit: 2,
-    roomDescription: '',
-    categories: '[]',
-    lastActive: new Date(),
+  SocketDB.findAll({
+    where: {
+      connected: true,
+    },
+    include: [{
+      model: UserDB,
+      where: { userType: USER_TYPE.COUNSELLOR },
+    }]
   })
-    .then(r => r.addSockets([socket.socketDb, counsellor.socket.socketDb]))
-    .then(r => r.reload({include: [SocketDB]}))
-    .then(room => {
-      socket.join(roomId, () => {
-        counsellor.socket.join(roomId, () => {
-          socket.emit(k.FIND_COUNSELLOR, {
-            ...counsellor.toJson,
-            ...room.toJSON(),
-          });
-          counsellor.socket.emit(k.FIND_COUNSELLOR, {
-            userId: socket.id,
-            ...counsellor.toJson,
-            ...room.toJSON(),
+  .then(counsellorsAvailable => {
+    if (counsellorsAvailable.length === 0) {
+      // If there are no counsellors available, we want to create an issue
+      // to track that a user request was missed.
+      // The next time a counsellor logs in we can deliver a notification.
+      const issue = newMissedUserIssue({ userId: socket.id }); // eslint-disable-line no-unused-vars
+      // TODO now save this issue somewhere
+      const message = 'No counsellors available';
+      emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
+    } else {
+      // TODO: some sort of selection for counsellor, right now just use first
+      const counsellorSocketDb = counsellorsAvailable[0];
+
+      // create an issue to track this match
+      const issue = newUserRequestedIssue({ // eslint-disable-line no-unused-vars
+        userId: socket.id,
+        counsellorId: counsellorSocketDb.user.id,
+      });
+      // TODO: save this issue somewhere
+
+      const roomId = uuid.v4();
+
+      RoomDB.create({
+        roomId,
+        roomName: 'Chat with counsellor',
+        roomType: ROOM_TYPE.PRIVATE,
+        userLimit: 2,
+        roomDescription: '',
+        categories: '[]',
+        lastActive: new Date(),
+      })
+        .then(r => r.addSockets([socket.socketDb, counsellorSocketDb]))
+        .then(r => r.reload({include: [SocketDB]}))
+        .then(room => {
+          const counsellorSocket = SOCKETS[counsellorSocketDb.id];
+          const cJson = {
+            counsellorName: counsellorSocketDb.user.name,
+            counsellorId: counsellorSocketDb.user.id,
+          };
+          socket.join(roomId, () => {
+            counsellorSocket.join(roomId, () => {
+              socket.emit(k.FIND_COUNSELLOR, {
+                ...cJson,
+                ...room.toJSON(),
+              });
+              counsellorSocket.emit(k.FIND_COUNSELLOR, {
+                userId: socket.id,
+                ...cJson,
+                ...room.toJSON(),
+              });
+            });
           });
         });
-      });
-    });
+    }
+  });
 };
 
 const onCounsellorOnline = socket => data => {
-  // TODO errors when data not provided
-  COUNSELLORS.push(
-    new Counsellor(
-      data.counsellorId,
-      data.counsellorName,
-      socket,
-    )
-  );
+  UserDB
+    .findById(data.counsellorId)
+    .then(c => {
+      if (c === null) {
+        return UserDB.create({
+          id: data.counsellorId,
+          name: data.counsellorName,
+          userType: USER_TYPE.COUNSELLOR,
+        });
+      }
+      return c;
+    })
+    .then(c => {
+      socket.socketDb.userId = c.id;
+      return socket.socketDb.save();
+    })
+    .then(sdb => {
+      socket.socketDb = sdb;
+      socket.emit(k.COUNSELLOR_ONLINE, {});
+    });
+  // // TODO errors when data not provided
   // TODO notifications, chat list for counsellor
-  socket.emit(k.COUNSELLOR_ONLINE, {});
 };
 
 const onReportUser = ensureRoomExists(socket => data => {
@@ -419,6 +438,7 @@ io.on('connection', function(socket) {
     id: socket.id,
     connected: true,
   }).then(function(s) {
+    SOCKETS[socket.id] = socket;
     socket.socketDb = s;
   });
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));

@@ -4,6 +4,7 @@ import process from 'process';
 
 import MESSAGE_TYPE from './models/message_type';
 import ROOM_TYPE from './models/room_type';
+import USER_TYPE from './models/user_type';
 
 switch (process.env.NODE_ENV) {
   case 'prod':
@@ -29,6 +30,10 @@ const database = new Sequelize(
 
 const UserDB = database.define('user', {
   id: { type: Sequelize.STRING, primaryKey: true },
+  userType: { type: Sequelize.ENUM( // eslint-disable-line new-cap
+    USER_TYPE.ANON, USER_TYPE.COUNSELLOR)},
+  name: { type: Sequelize.STRING },
+  // connectedVia: { type: Sequelize.STRING, primaryKey: true },
 });
 
 const SocketDB = database.define('socket', {
@@ -36,6 +41,7 @@ const SocketDB = database.define('socket', {
   connected: { type: Sequelize.BOOLEAN, allowNull: false },
 });
 
+// UserDB.belongsTo(SocketDB);
 SocketDB.belongsTo(UserDB);
 
 const RoomDB = database.define('room', {
@@ -72,4 +78,5 @@ export {
   MessageDB,
   RoomDB,
   SocketDB,
+  UserDB,
 };
