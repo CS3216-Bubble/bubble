@@ -12,12 +12,11 @@ import ROOM_TYPE from './models/room_type';
 import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import Counsellor from './models/counsellor';
 import logger from './logging';
-import { RoomDB, MessageDB } from './database';
+import { RoomDB, MessageDB, SocketDB } from './database';
 
 const app = express();
 const server = createServer(app);
 const io = socketio(server);
-const SOCKETS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -270,6 +269,14 @@ const onDisconnect = socket => data => {
     c => c.socket.id !== socket.id);
   COUNSELLORS = COUNSELLORS.filter(
     c => c.socket.id !== socket.id);
+
+  SocketDB.findById(socket.id)
+    .then((socket => {
+      if (socket !== null) {
+        socket.connected = false;
+        socket.save();
+      }
+    }));
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -384,7 +391,10 @@ const onReportUser = ensureRoomExists(socket => data => {
 });
 
 io.on('connection', function(socket) {
-  SOCKETS[socket.id] = socket;
+  SocketDB.create({
+    id: socket.id,
+    connected: true,
+  });
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));

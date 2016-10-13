@@ -26,6 +26,17 @@ const database = new Sequelize(
     logging: () => {},
   });
 
+const UserDB = database.define('user', {
+  id: { type: Sequelize.STRING, primaryKey: true },
+});
+
+const SocketDB = database.define('socket', {
+  id: { type: Sequelize.STRING, primaryKey: true },
+  connected: { type: Sequelize.BOOLEAN, allowNull: false },
+});
+
+SocketDB.belongsTo(UserDB);
+
 const RoomDB = database.define('room', {
   roomId: { type: Sequelize.STRING, primaryKey: true },
   roomName: { type: Sequelize.STRING, allowNull: false },
@@ -45,7 +56,6 @@ const MessageDB = database.define('message', {
 });
 
 RoomDB.hasMany(MessageDB);
-// MessageDB.belongsTo(RoomDB);
 
 database.sync();
 
@@ -53,4 +63,5 @@ export default database;
 export {
   MessageDB,
   RoomDB,
+  SocketDB,
 };

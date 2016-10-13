@@ -1,17 +1,15 @@
-import { RoomDB } from '../src/database';
+import database, { RoomDB, SocketDB } from '../src/database';
 import { after, before, describe } from 'mocha';
 
 // these cases are just for the side effect of cleaning up DB
-describe('API', function() {
-  before(function(done) {
-    RoomDB
-      .drop()
-      .then(() => done());
-  });
+before(function(done) {
+  database.sync({ force: true }).then(() => done());
+  // Promise.all([
+  //   RoomDB.drop(),
+  //   SocketDB.drop(),
+  // ]).then(() => done());
+});
 
-  after(function(done) {
-    RoomDB
-      .drop()
-      .then(() => done());
-  });
+after(function(done) {
+  database.sync({ force: true }).then(() => done());
 });
