@@ -120,11 +120,14 @@ describe('API', function() {
         room.lastActive.should.not.equal(originalLastActive);
         done();
       });
-      client.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: 'Hello',
-      });
-      client.emit(k.VIEW_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, () => {
+        client.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
+      })
+      client2.on(k.ADD_MESSAGE, () => client.emit(k.VIEW_ROOM, { roomId }))
+      client2.emit(k.JOIN_ROOM, { roomId });
     });
 
     it('should update messages in room', function(done) {

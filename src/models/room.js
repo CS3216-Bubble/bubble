@@ -9,7 +9,7 @@ class Room {
   userLimit: number;
   roomDescription: string;
   categories: string[];
-  socketIds: string[];
+  sockets: string[];
   lastActive: Date;
 
   constructor({
@@ -19,8 +19,10 @@ class Room {
     userLimit,
     roomDescription = '',
     categories = [],
-    socketIds = [],
+    sockets = [],
     messages = [],
+    lastActive = null,
+    _room = null,
   }) {
     this.roomId = roomId;
     this.roomName = roomName;
@@ -28,30 +30,34 @@ class Room {
     this.userLimit = userLimit;
     this.roomDescription = roomDescription;
     this.categories = categories;
-    this.socketIds = socketIds;
-    this.lastActive = new Date();
+    this.sockets = sockets;
+    this.lastActive = lastActive || new Date();
     this.messages = messages;
-    this._room = null;
+    this._room = _room;
   }
 
+  static fromDb(r) {
+    return new Room({
+      roomId: r.roomId,
+      roomName: r.roomName,
+      roomType: r.roomType,
+      userLimit: r.userLimit,
+      roomDescription: r.roomDescription,
+      categories: JSON.parse(r.categories),
+      sockets: r.sockets.map(m => m.dataValues),
+      lastActive: r.lastActive,
+      messages: r.messages.map(m => m.dataValues),
+      _room: r,
+    });
+  }
+
+
   get numberOfUsers() {
-    return this.socketIds.length;
+    return this.sockets.length;
   }
 
   isUserHere(socket) {
-    return this.socketIds.filter(s => s === socket.id).length > 0;
-  }
-
-  addUser(socket) {
-    this.socketIds = this.socketIds.concat(socket.id);
-    // should we update lastActive here?
-  }
-
-  removeUser(socket) {
-    this.socketIds = this.socketIds.filter(
-      s => s !== socket.id
-    );
-    // should we update lastActive here?
+    return this.sockets.filter(s => s.id === socket.id).length > 0;
   }
 
   touch() {
@@ -92,15 +98,36 @@ class Room {
 
   preSave(values) {
     values.categories = JSON.stringify(values.categories);
-    values.socketIds = JSON.stringify(values.socketIds);
-    // values.messages = JSON.stringify(values.messages);
     return values;
   }
 
+  create(db) {
+    return db.create({
+      roomId: this.roomId,
+      roomName: this.roomName,
+      roomType: this.roomType,
+      userLimit: this.userLimit,
+      roomDescription: this.roomDescription,
+      categories: JSON.stringify(this.categories),
+      numberOfUsers: this.numberOfUsers,
+      lastActive: this.lastActive,
+    });
+  }
+
   save(db) {
-    return db.upsert(
-      this.preSave(this.toJson)
-    );
+    return db.update({
+      roomName: this.roomName,
+      roomType: this.roomType,
+      userLimit: this.userLimit,
+      roomDescription: this.roomDescription,
+      categories: JSON.stringify(this.categories),
+      numberOfUsers: this.numberOfUsers,
+      lastActive: this.lastActive,
+    }, {
+      where: {
+        roomId: this.roomId,
+      },
+    });
   }
 
   get toJson() {
@@ -112,7 +139,7 @@ class Room {
       roomDescription: this.roomDescription,
       categories: this.categories,
       numberOfUsers: this.numberOfUsers,
-      socketIds: this.socketIds,
+      sockets: this.sockets,
       lastActive: this.lastActive.toISOString(),
       messages: this.messages,
     };

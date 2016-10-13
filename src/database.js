@@ -44,7 +44,7 @@ const RoomDB = database.define('room', {
   userLimit: Sequelize.INTEGER,
   roomDescription: Sequelize.TEXT,
   categories: Sequelize.STRING,
-  socketIds: Sequelize.STRING,
+  // socketIds: Sequelize.STRING,
   lastActive: Sequelize.DATE,
 });
 
@@ -56,6 +56,7 @@ const MessageDB = database.define('message', {
 });
 
 RoomDB.hasMany(MessageDB);
+RoomDB.hasMany(SocketDB);
 
 database.sync();
 

@@ -13,10 +13,12 @@ import {
 describe('API', function() {
   this.timeout(3000);
   let client;
+  let client2;
 
   beforeEach(function(done) {
     server.listen(3000);
     client = makeClient(io);
+    client2 = makeClient(io);
     // important that this happens only once during initialization
     client.once(k.CREATE_ROOM, function(room) {
       done();
@@ -44,14 +46,16 @@ describe('API', function() {
 
     it('should return a list of rooms ordered by last activity', function(done) {
       // first create another room that has a newer lastActive
-      createRoom(client);
-      client.on(k.CREATE_ROOM, () => client.emit(k.LIST_ROOMS));
+      client2.on(k.CREATE_ROOM, (data) => {
+        client.emit(k.LIST_ROOMS)
+      });
       client.on(k.LIST_ROOMS, data => {
         data.should.be.Array();
         data.length.should.equal(2);
         data[0].lastActive.should.be.below(data[1].lastActive);
         done();
       });
+      setTimeout(() => createRoom(client2), 500);
     });
 
     it('should not return rooms that are private (counseller)');
