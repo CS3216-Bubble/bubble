@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import process from 'process';
 
 import MESSAGE_TYPE from './models/message_type';
+import ROOM_TYPE from './models/room_type';
 
 switch (process.env.NODE_ENV) {
   case 'prod':
@@ -40,12 +41,18 @@ SocketDB.belongsTo(UserDB);
 const RoomDB = database.define('room', {
   roomId: { type: Sequelize.STRING, primaryKey: true },
   roomName: { type: Sequelize.STRING, allowNull: false },
-  roomType: Sequelize.ENUM(0, 1), // eslint-disable-line new-cap
+  roomType: Sequelize.ENUM(ROOM_TYPE.PUBLIC, ROOM_TYPE.PRIVATE), // eslint-disable-line new-cap
   userLimit: Sequelize.INTEGER,
   roomDescription: Sequelize.TEXT,
   categories: Sequelize.STRING,
   // socketIds: Sequelize.STRING,
   lastActive: Sequelize.DATE,
+}, {
+  getterMethods: {
+    numberOfUsers: function() {
+      return this.sockets ? this.sockets.length : 0;
+    },
+  },
 });
 
 const MessageDB = database.define('message', {
