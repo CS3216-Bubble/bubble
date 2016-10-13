@@ -1,5 +1,5 @@
-import database, { RoomDB, SocketDB } from '../src/database';
-import { after, before, describe } from 'mocha';
+import database from '../src/database';
+import { after, before } from 'mocha';
 
 // these cases are just for the side effect of cleaning up DB
 before(function(done) {

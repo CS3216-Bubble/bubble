@@ -29,6 +29,7 @@ describe('API', function() {
 
   afterEach(function(done) {
     client.disconnect();
+    client2.disconnect();
     server.close();
     done();
   });
@@ -46,8 +47,8 @@ describe('API', function() {
 
     it('should return a list of rooms ordered by last activity', function(done) {
       // first create another room that has a newer lastActive
-      client2.on(k.CREATE_ROOM, (data) => {
-        client.emit(k.LIST_ROOMS)
+      client2.on(k.CREATE_ROOM, data => {
+        client.emit(k.LIST_ROOMS);
       });
       client.on(k.LIST_ROOMS, data => {
         data.should.be.Array();

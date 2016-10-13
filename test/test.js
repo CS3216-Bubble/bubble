@@ -39,18 +39,18 @@ describe('API', function() {
     done();
   });
 
-  // describe('connect', function() {
-  //   it('should have 2 clients connected', function(done) {
-  //     SocketDB.findAll({
-  //       where: {
-  //         connected: true,
-  //       },
-  //     }).then((sockets) => {
-  //       sockets.length.should.equal(2);
-  //       done();
-  //     });
-  //   });
-  // })
+  describe('connect', function() {
+    it('should have 2 clients connected', function(done) {
+      SocketDB.findAll({
+        where: {
+          connected: true,
+        },
+      }).then(sockets => {
+        sockets.length.should.equal(2);
+        done();
+      });
+    });
+  });
 
   describe('set_user_name', function() {
     it('should return error when newName is not specified', function(done) {

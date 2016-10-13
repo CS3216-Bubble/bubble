@@ -107,7 +107,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
   // ensures user is not already in the room
-  const userInRoom = !!room.sockets.find(s => s.id == socket.id);
+  const userInRoom = Boolean(room.sockets.find(s => s.id === socket.id));
   if (userInRoom) {
     const message = `User ${socket.id} is already in room ${room.roomId}`;
     return emitAppError(socket, e.USER_ALREADY_IN_ROOM, message);
@@ -149,8 +149,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
         });
       });
     }
-  )
-
+  );
 });
 
 const onTyping = ensureRoomExists(socket => data => {
@@ -190,7 +189,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_MESSAGE, message);
   }
 
-  const userNotInRoom = !room.sockets.find(s => s.id == socket.id);
+  const userNotInRoom = !room.sockets.find(s => s.id === socket.id);
   if (userNotInRoom) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
@@ -220,7 +219,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
   const room = data.room;
   const { reaction } = data;
 
-  const userNotInRoom = !room.sockets.find(s => s.id == socket.id);
+  const userNotInRoom = !room.sockets.find(s => s.id === socket.id);
   if (userNotInRoom) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
@@ -258,17 +257,17 @@ const onListRooms = socket => data => {
     .then(rooms => {
       return rooms
         .filter(r => r.sockets.length > 0)
-        .map(r => r.toJSON())
+        .map(r => r.toJSON());
     })
     .then(rooms => {
       return socket.emit(k.LIST_ROOMS, rooms.sort((a, b) => a.lastActive - b.lastActive));
-    })
+    });
 };
 
 const onDisconnect = socket => data => {
   let roomId;
   if (socket.socketDb) {
-  socket.socketDb.reload()
+    socket.socketDb.reload()
   .then(s => {
     if (!s.roomRoomId) {
       return;
@@ -286,7 +285,7 @@ const onDisconnect = socket => data => {
     return socket.to(roomId).emit(k.EXIT_ROOM, {
       userId: socket.id,
     });
-  })
+  });
   }
 
   COUNSELLORS = COUNSELLORS.filter(
@@ -379,7 +378,7 @@ const onFindCounsellor = socket => data => {
           });
         });
       });
-    })
+    });
 };
 
 const onCounsellorOnline = socket => data => {
@@ -404,7 +403,7 @@ const onReportUser = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_USER_TO_REPORT, message);
   }
 
-  const userNotInRoom = !room.sockets.find(s => s.id == userToReport);
+  const userNotInRoom = !room.sockets.find(s => s.id === userToReport);
   if (userNotInRoom) {
     let message = `User is not in room`;
     return emitAppError(socket, e.NO_USER_TO_REPORT, message);
@@ -421,7 +420,9 @@ io.on('connection', function(socket) {
   SocketDB.create({
     id: socket.id,
     connected: true,
-  }).then(s => socket.socketDb = s);
+  }).then(function(s) {
+    socket.socketDb = s;
+  });
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));

@@ -125,8 +125,8 @@ describe('API', function() {
           roomId,
           message: 'Hello',
         });
-      })
-      client2.on(k.ADD_MESSAGE, () => client.emit(k.VIEW_ROOM, { roomId }))
+      });
+      client2.on(k.ADD_MESSAGE, () => client.emit(k.VIEW_ROOM, { roomId }));
       client2.emit(k.JOIN_ROOM, { roomId });
     });
 
