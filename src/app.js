@@ -94,12 +94,9 @@ const onCreateRoom = socket => data => {
   })
     .then(r => r.addSocket(socket.socketDb))
     .then(r => r.reload({include: [SocketDB]}))
-    .then(r => {
-      socket.join(roomId, () => {
-        socket.emit(k.CREATE_ROOM, r.toJSON());
-      });
-      return r;
-    })
+    .then(r => socket.join(roomId, () => {
+      socket.emit(k.CREATE_ROOM, r.toJSON());
+    }))
     .catch(e => console.error(e));
 };
 
@@ -121,6 +118,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   }
 
   room.addSocket(socket.socketDb)
+  .then(() => socket.socketDb.reload())
   .then(() => {
     socket.join(room.roomId, () => {
       socket.to(room.roomId).emit(k.JOIN_ROOM, {
@@ -134,7 +132,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 const onExitRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
-  if (!Object.keys(socket.rooms).includes(room.roomId)) {
+  if (socket.socketDb.roomRoomId !== room.roomId) {
     const message = `User is not in room ${room.roomId}.`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
