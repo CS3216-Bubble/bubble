@@ -241,7 +241,6 @@ const onAddReaction = ensureRoomExists(socket => data => {
       });
     })
     .catch(e => console.error(e));
-
 });
 
 const onListRooms = socket => data => {

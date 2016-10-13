@@ -39,8 +39,8 @@ const RoomDB = database.define('room', {
 
 const MessageDB = database.define('message', {
   userId: { type: Sequelize.STRING, allowNull: false }, // socket id
-  messageType: Sequelize.ENUM(
-    MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION), // eslint-disable-line new-cap
+  messageType: Sequelize.ENUM( // eslint-disable-line new-cap
+    MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION),
   content: { type: Sequelize.TEXT, allowNull: false },
 });
 
