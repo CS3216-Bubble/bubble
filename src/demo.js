@@ -38,11 +38,11 @@
 
   socket.on('typing', function(msg) {
     typing.text(`${msg.userId} is typing`);
-  })
+  });
 
   socket.on('stop_typing', function(msg) {
     typing.text('');
-  })
+  });
 
   socket.on('counsellor_online', function(data) {
     $('#conline').text('Online as Counsellor');
@@ -121,22 +121,27 @@
   });
 
   $('#exitroom').submit(function() {
-    if (!roomId) { return; }
+    if (!roomId) {
+      return;
+    }
     socket.emit('exit_room', {
       roomId
-    })
+    });
     exitRoom.hide();
     return false;
-  })
+  });
 
   var kdtimeout;
   msgInput.on('keydown', function() {
-    if (!roomId) { return; }
-    if (kdtimeout) { clearTimeout(kdtimeout) };
-    socket.emit('typing', { roomId })
+    if (!roomId) {
+      return;
+    }
+    if (kdtimeout) {
+      clearTimeout(kdtimeout);
+    }
+    socket.emit('typing', { roomId });
     kdtimeout = setTimeout(function() {
-      socket.emit('stop_typing', { roomId })
-    }, 500)
-  })
-
+      socket.emit('stop_typing', { roomId });
+    }, 500);
+  });
 })(jQuery, io); // eslint-disable-line no-undef
