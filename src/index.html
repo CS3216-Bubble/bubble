@@ -2,153 +2,68 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { max-width: 960px; font: 16px Helvetica, Arial; }
-form { padding: 3px; width: 100%; }
-form input { padding: 10px; width: 90%; margin-right: .5%; }
-form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-#messages { list-style-type: none; margin: 0; padding: 0; }
-#messages li { padding: 5px 10px; }
-#messages li:nth-child(odd) { background: #eee; }
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
   </head>
   <body>
-    <h2>Current room: <span id="currentRoom">No Room</span></h2>
-    <h2 id="conline"></h2>
-    <p id="clist"></p>
+    <div class="container">
+      <h2>Current room: <span id="currentRoom">No Room</span></h2>
+      <h2 id="conline"></h2>
+      <p id="clist"></p>
 
-    <form id="jac" action="">
-      <label for="cid">Counsellor Id</label>
-      <input id="cid" autocomplete="off" value="123" />
-      <label for="cname">Counsellor Name</label>
-      <input id="cname" autocomplete="off" value="ccc" />
-      <button>join as counsellor</button>
-    </form>
+      <form id="jac" action="" class="form-inline">
+        <label for="cid">Counsellor Id</label>
+        <input class="form-control" type="text" value="123" id="cid">
 
-    <form id="fc" action="">
-      <button>Find counsellor</button>
-    </form>
+        <label for="cname">Counsellor Name</label>
+        <input class="form-control" type="text" value="ccc" id="cname">
 
-    <form id="list" action="">
-      <button>list</button>
-    </form>
+        <button type="submit" class="btn btn-primary">Join as Counsellor</button>
+      </form>
 
-    <form id="create" action="">
-      <input id="roomname" autocomplete="off" />
-      <button>create</button>
-    </form>
+      <form id="fc" action="">
+        <div class="form-group row">
+          <button type="submit" class="btn btn-primary">Find Counsellor</button>
+        </div>
+      </form>
 
-    <form id="join" action="">
-      <input id="joinroomid" autocomplete="off" />
-      <button>join</button>
-    </form>
+      <form id="list" action="">
+        <div class="form-group row">
+          <button type="submit" class="btn btn-primary">List rooms</button>
+        </div>
+      </form>
 
-    <ul id="messages"></ul>
-    <form id="send" action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+      <form id="create" action="" class="form-inline">
+        <div class="form-group">
+          <label for="roomname">Room name</label>
+          <input class="form-control" type="text" id="roomname">
+          <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+      </form>
+
+      <form id="join" action="" class="form-inline">
+        <div class="form-group">
+          <label for="joinroomid">Room Id</label>
+          <input class="form-control" type="text" id="joinroomid">
+          <button type="submit" class="btn btn-primary">Join</button>
+        </div>
+      </form>
+
+      <ul id="messages">
+      </ul>
+
+      <form id="send" action="">
+        <div class="form-group row">
+          <div class="col-xs-10">
+            <input class="form-control" type="text" id="m" autocomplete="off" />
+          </div>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+
+      </form>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-      <script>
-      var roomId;
-      var currentRoom = $('#currentRoom');
-      var isCounsellor = false;
-
-      var socket = io();
-
-      socket.on('list_rooms', function(msg) {
-        console.log('listing rooms:');
-        console.log(msg)
-      })
-
-      socket.on('create_room', function(msg){
-        console.log(`room created ${msg.roomId}`);
-        roomId = msg.roomId;
-        currentRoom.text(roomId);
-      });
-
-      socket.on('join_room', function(msg){
-        console.log(`user ${msg.userId} joined this room`);
-      });
-
-      socket.on('add_message', function(msg) {
-        console.log(`user ${msg.userId} said "${msg.message}"`);
-        $('#messages').append(
-            `<li>${msg.userId}: "${msg.message}"</li>`
-        )
-      })
-
-      $('form#list').submit(function() {
-        socket.emit('list_rooms');
-        return false;
-      })
-
-      $('form#create').submit(function(){
-        socket.emit('create_room', {
-          roomName: $('#roomname').val(),
-          roomDescription: 'description',
-        });
-        return false;
-      });
-
-      $('form#join').submit(function(){
-        roomId = $('#joinroomid').val();
-        socket.emit('join_room', {
-          roomId,
-        });
-        currentRoom.text(roomId);
-        return false;
-      });
-
-      $('form#send').submit(function(){
-        const message = $('#m').val();
-        socket.emit('add_message', {
-          roomId: currentRoom.text(),
-          message,
-        });
-        $('#messages').append(
-            `<li>${socket.id}: "${message}"</li>`
-        )
-        $('#m').val('');
-        return false;
-      });
-
-      $('#fc').submit(function() {
-        socket.emit('find_counsellor', {})
-        return false;
-      })
-
-      socket.on('find_counsellor', function(data) {
-        console.log(data);
-        if (!isCounsellor) {
-          $('#clist').html(`
-              Chatting with
-              <p>${data.counsellorId}</p>
-              <p>${data.counsellorName}</p>
-          `);
-        } else {
-          $('#clist').html(`
-              Chatting with
-              <p>${data.userId}</p>
-          `);
-        }
-
-        currentRoom.text(data.roomId);
-      })
-
-      $('#jac').submit(function() {
-        socket.emit('counsellor_online', {
-          counsellorId: $('#cid').val(),
-          counsellorName: $('#cname').val(),
-        })
-        isCounsellor = true;
-        return false;
-      })
-
-      socket.on('counsellor_online', function(data) {
-        $('#conline').text('Online as Counsellor');
-      })
-      </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+    <script src="/demo.js"></script>
   </body>
 </html>
