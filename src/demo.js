@@ -5,6 +5,8 @@
   var msgs = $('#messages');
   var msgInput = $('#m');
   var typing = $('#typingindicator');
+  var exitRoom = $('#exitroom');
+  exitRoom.hide();
 
   var socket = io();
 
@@ -17,6 +19,7 @@
     console.log(`room created ${msg.roomId}`);
     roomId = msg.roomId;
     currentRoom.text(roomId);
+    exitRoom.show();
   });
 
   socket.on('join_room', function(msg) {
@@ -63,6 +66,10 @@
     currentRoom.text(data.roomId);
   });
 
+  socket.on('exit_room', function(data) {
+    msgs.append(`<li>${data.userId} exited the room</li>`);
+  });
+
   $('form#list').submit(function() {
     socket.emit('list_rooms');
     return false;
@@ -82,6 +89,7 @@
       roomId,
     });
     currentRoom.text(roomId);
+    exitRoom.show();
     return false;
   });
 
@@ -111,6 +119,15 @@
     isCounsellor = true;
     return false;
   });
+
+  $('#exitroom').submit(function() {
+    if (!roomId) { return; }
+    socket.emit('exit_room', {
+      roomId
+    })
+    exitRoom.hide();
+    return false;
+  })
 
   var kdtimeout;
   msgInput.on('keydown', function() {

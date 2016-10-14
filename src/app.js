@@ -209,7 +209,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
-  MessageDB
+  return MessageDB
     .create({
       userId: socket.id,
       messageType: MESSAGE_TYPE.MESSAGE,
@@ -221,7 +221,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
       return room.save();
     })
     .then(r => {
-      socket.to(room.roomId).emit(k.ADD_MESSAGE, {
+      return socket.to(room.roomId).emit(k.ADD_MESSAGE, {
         roomId: room.roomId,
         userId: socket.id,
         message,
