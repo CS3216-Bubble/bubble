@@ -7,12 +7,12 @@ import { createServer } from 'http';
 
 import * as e from './error_code';
 import * as k from './constants';
+import ISSUE_TYPE from './models/issue_type';
 import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
-import { newMissedUserIssue, newUserRequestedIssue } from './models/issue';
 import logger from './logging';
-import { RoomDB, MessageDB, SocketDB, UserDB } from './database';
+import { IssueDB, RoomDB, MessageDB, SocketDB, UserDB } from './database';
 
 const app = express();
 const server = createServer(app);
@@ -21,6 +21,10 @@ const SOCKETS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
+});
+
+app.get('/demo.js', function(req, res) {
+  res.sendFile('demo.js', {root: __dirname});
 });
 
 const emitAppError = (socket, code, message) => {
@@ -82,17 +86,21 @@ const onCreateRoom = socket => data => {
 
   const roomId = uuid.v4();
 
-  RoomDB.create({
-    roomId,
-    roomName: roomName,
-    roomType: ROOM_TYPE.PUBLIC,
-    userLimit: userLimit,
-    roomDescription: roomDescription,
-    categories: JSON.stringify(categories),
-    lastActive: new Date(),
+  Promise.all([
+    RoomDB.create({
+      roomId,
+      roomName: roomName,
+      roomType: ROOM_TYPE.PUBLIC,
+      userLimit: userLimit,
+      roomDescription: roomDescription,
+      categories: JSON.stringify(categories),
+      lastActive: new Date(),
+    }),
+    SocketDB.findById(socket.id),
+  ]).then(rs => {
+    rs[0].addSocket(rs[1]);
+    return rs[0];
   })
-    .then(r => r.addSocket(socket.socketDb))
-    .then(r => r.reload({include: [SocketDB]}))
     .then(r => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, r.toJSON());
     }))
@@ -116,37 +124,46 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.ROOM_FULL, message);
   }
 
-  room.addSocket(socket.socketDb)
-  .then(() => socket.socketDb.reload())
-  .then(() => {
-    socket.join(room.roomId, () => {
-      socket.to(room.roomId).emit(k.JOIN_ROOM, {
-        roomId: room.roomId,
-        userId: socket.id,
+  SocketDB
+    .findById(socket.id)
+    .then(
+      s => room.addSocket(s)
+    )
+    .then(() => socket.socketDb.reload())
+    .then(() => {
+      socket.join(room.roomId, () => {
+        socket.to(room.roomId).emit(k.JOIN_ROOM, {
+          roomId: room.roomId,
+          userId: socket.id,
+        });
       });
     });
-  });
 });
 
 const onExitRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
-  if (socket.socketDb.roomRoomId !== room.roomId) {
-    const message = `User is not in room ${room.roomId}.`;
-    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
-  }
-
-  room.removeSocket(socket.socketDb)
-  .then(
-    _ => {
-      socket.leave(room.roomId, () => {
-        socket.to(room.roomId).emit(k.EXIT_ROOM, {
-          roomId: room.roomId,
-          userId: socket.id,
-        });
-      });
-    }
-  );
+  SocketDB
+    .findById(socket.id)
+    .then(s => {
+      if (socket.socketDb.roomRoomId !== room.roomId) {
+        const message = `User is not in room ${room.roomId}.`;
+        return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
+      }
+      room
+        .removeSocket(s)
+        .then(() => socket.socketDb.reload())
+        .then(
+          () => {
+            socket.leave(room.roomId, () => {
+              socket.to(room.roomId).emit(k.EXIT_ROOM, {
+                roomId: room.roomId,
+                userId: socket.id,
+              });
+            });
+          }
+        );
+    });
 });
 
 const onTyping = ensureRoomExists(socket => data => {
@@ -192,12 +209,13 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
-  MessageDB.create({
-    userId: socket.id,
-    messageType: MESSAGE_TYPE.MESSAGE,
-    content: message,
-    roomRoomId: room.roomId,
-  })
+  MessageDB
+    .create({
+      userId: socket.id,
+      messageType: MESSAGE_TYPE.MESSAGE,
+      content: message,
+      roomRoomId: room.roomId,
+    })
     .then(() => {
       room.lastActive = new Date();
       return room.save();
@@ -227,12 +245,13 @@ const onAddReaction = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_REACTION, message);
   }
 
-  MessageDB.create({
-    userId: socket.id,
-    messageType: MESSAGE_TYPE.REACTION,
-    content: reaction,
-    roomRoomId: room.roomId,
-  })
+  MessageDB
+    .create({
+      userId: socket.id,
+      messageType: MESSAGE_TYPE.REACTION,
+      content: reaction,
+      roomRoomId: room.roomId,
+    })
     .then(() => {
       room.lastActive = new Date();
       return room.save();
@@ -248,51 +267,51 @@ const onAddReaction = ensureRoomExists(socket => data => {
 });
 
 const onListRooms = socket => data => {
-  RoomDB.findAll({
-    include: [MessageDB, SocketDB],
-  })
+  RoomDB
+    .findAll({
+      include: [MessageDB, SocketDB],
+    })
     .then(rooms => {
       return rooms
         .filter(r => r.sockets.length > 0)
         .map(r => r.toJSON());
     })
     .then(rooms => {
-      return socket.emit(k.LIST_ROOMS, rooms.sort((a, b) => a.lastActive - b.lastActive));
+      rooms.sort((a, b) => a.lastActive - b.lastActive);
+      return socket.emit(k.LIST_ROOMS, rooms);
     });
 };
 
 const onDisconnect = socket => data => {
   let roomId;
-  if (socket.socketDb) {
-    socket.socketDb.reload()
+  SocketDB
+    .findById(socket.id)
   .then(s => {
-    if (!s.roomRoomId) {
+    if (s === null) {
       return;
     }
-    roomId = s.roomRoomId;
-    return RoomDB.findById(s.roomRoomId, {
-      include: [SocketDB],
-    });
-  })
-  .then(room => {
-    if (!room) return;
-    return room.removeSocket(socket.socketDb);
-  })
-  .then(() => {
-    return socket.to(roomId).emit(k.EXIT_ROOM, {
-      userId: socket.id,
-    });
+    s.connected = false;
+    s.save()
+      .then(s => {
+        if (!s.roomRoomId) {
+          return;
+        }
+        roomId = s.roomRoomId;
+        return RoomDB.findById(s.roomRoomId, {
+          include: [SocketDB],
+        });
+      })
+      .then(room => {
+        if (!room) return;
+        return room.removeSocket(s);
+      })
+      .then(() => {
+        delete SOCKETS[socket.id];
+        return socket.to(roomId).emit(k.EXIT_ROOM, {
+          userId: socket.id,
+        });
+      });
   });
-  }
-
-  SocketDB.findById(socket.id)
-    .then((socket => {
-      if (socket !== null) {
-        socket.connected = false;
-        socket.save();
-      }
-    }));
-  delete SOCKETS[socket.id];
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -334,35 +353,45 @@ const onFindCounsellor = socket => data => {
       // If there are no counsellors available, we want to create an issue
       // to track that a user request was missed.
       // The next time a counsellor logs in we can deliver a notification.
-      const issue = newMissedUserIssue({ userId: socket.id }); // eslint-disable-line no-unused-vars
-      // TODO now save this issue somewhere
-      const message = 'No counsellors available';
-      emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
+      IssueDB.create({
+        id: uuid.v4(),
+        issueType: ISSUE_TYPE.USER_MISSED,
+        userId: socket.id,
+      }).then(() => {
+        const message = 'No counsellors available';
+        emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
+      });
     } else {
       // TODO: some sort of selection for counsellor, right now just use first
       const counsellorSocketDb = counsellorsAvailable[0];
-
-      // create an issue to track this match
-      const issue = newUserRequestedIssue({ // eslint-disable-line no-unused-vars
-        userId: socket.id,
-        counsellorId: counsellorSocketDb.user.id,
-      });
-      // TODO: save this issue somewhere
-
+      let room;
       const roomId = uuid.v4();
 
-      RoomDB.create({
-        roomId,
-        roomName: 'Chat with counsellor',
-        roomType: ROOM_TYPE.PRIVATE,
-        userLimit: 2,
-        roomDescription: '',
-        categories: '[]',
-        lastActive: new Date(),
-      })
-        .then(r => r.addSockets([socket.socketDb, counsellorSocketDb]))
-        .then(r => r.reload({include: [SocketDB]}))
-        .then(room => {
+      // create an issue to track this match
+      IssueDB
+        .create({
+          id: uuid.v4(),
+          issueType: ISSUE_TYPE.USER_REQUESTED,
+          userId: socket.id,
+          counsellorId: counsellorSocketDb.user.id,
+        })
+        .then(() => {
+          return RoomDB.create({
+            roomId,
+            roomName: 'Chat with counsellor',
+            roomType: ROOM_TYPE.PRIVATE,
+            userLimit: 2,
+            roomDescription: '',
+            categories: '[]',
+            lastActive: new Date(),
+          });
+        })
+        .then(r => {
+          room = r;
+          return SocketDB.findById(socket.id);
+        })
+        .then(s => room.addSockets([s, counsellorSocketDb]))
+        .then(() => {
           const counsellorSocket = SOCKETS[counsellorSocketDb.id];
           const cJson = {
             counsellorName: counsellorSocketDb.user.name,
@@ -433,6 +462,25 @@ const onReportUser = ensureRoomExists(socket => data => {
   });
 });
 
+const onListIssues = socket => data => {
+  const cId = data.counsellorId;
+  IssueDB.findAll({
+    where: {
+      $or: [
+        {
+          issueType: ISSUE_TYPE.USER_MISSED,
+        },
+        {
+          issueType: ISSUE_TYPE.USER_REQUESTED,
+          counsellorId: cId,
+        },
+      ],
+    },
+  }).then(issues => {
+    socket.emit(k.LIST_ISSUES, issues.map(i => i.toJSON()));
+  });
+};
+
 io.on('connection', function(socket) {
   SocketDB.create({
     id: socket.id,
@@ -455,6 +503,7 @@ io.on('connection', function(socket) {
   socket.on(k.FIND_COUNSELLOR, onFindCounsellor(socket));
   socket.on(k.COUNSELLOR_ONLINE, onCounsellorOnline(socket));
   socket.on(k.REPORT_USER, onReportUser(socket));
+  socket.on(k.LIST_ISSUES, onListIssues(socket));
 });
 
 export {

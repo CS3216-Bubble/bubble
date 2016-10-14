@@ -2,6 +2,7 @@ import Sequelize from 'sequelize';
 import dotenv from 'dotenv';
 import process from 'process';
 
+import ISSUE_TYPE from './models/issue_type';
 import MESSAGE_TYPE from './models/message_type';
 import ROOM_TYPE from './models/room_type';
 import USER_TYPE from './models/user_type';
@@ -71,10 +72,25 @@ const MessageDB = database.define('message', {
 RoomDB.hasMany(MessageDB);
 RoomDB.hasMany(SocketDB);
 
+const IssueDB = database.define('issue', {
+  id: { type: Sequelize.STRING, primaryKey: true },
+  userId: { type: Sequelize.STRING, allowNull: false }, // socket id
+  counsellorId: { type: Sequelize.STRING },
+  issueType: {
+    type: Sequelize.ENUM( // eslint-disable-line new-cap
+      ISSUE_TYPE.USER_FLAGGED,
+      ISSUE_TYPE.USER_REQUESTED,
+      ISSUE_TYPE.USER_MISSED,
+    ),
+    allowNull: false,
+  },
+});
+
 database.sync();
 
 export default database;
 export {
+  IssueDB,
   MessageDB,
   RoomDB,
   SocketDB,

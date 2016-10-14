@@ -13,3 +13,4 @@ export const DISCONNECT = 'disconnect';
 export const SET_USER_NAME = 'set_user_name';
 export const FIND_COUNSELLOR = 'find_counsellor';
 export const COUNSELLOR_ONLINE = 'counsellor_online';
+export const LIST_ISSUES = 'list_issues';
