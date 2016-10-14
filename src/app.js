@@ -62,12 +62,12 @@ const ensureRoomExists = nextFn => socket => data => {
         const message = `Room ${roomId} cannot be found.`;
         return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
       }
-      nextFn(socket)({...data, room: r});
+      return nextFn(socket)({...data, room: r});
     })
     .catch(err => {
       console.error(err);
       const message = `Room ${roomId} cannot be found.`;
-      emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
+      return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
     });
 };
 
