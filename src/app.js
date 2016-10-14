@@ -85,24 +85,26 @@ const onCreateRoom = socket => data => {
   }
 
   const roomId = uuid.v4();
+  let room;
 
-  Promise.all([
-    RoomDB.create({
-      roomId,
-      roomName: roomName,
-      roomType: ROOM_TYPE.PUBLIC,
-      userLimit: userLimit,
-      roomDescription: roomDescription,
-      categories: JSON.stringify(categories),
-      lastActive: new Date(),
-    }),
-    SocketDB.findById(socket.id),
-  ]).then(rs => {
-    rs[0].addSocket(rs[1]);
-    return rs[0];
+  RoomDB.create({
+    roomId,
+    roomName: roomName,
+    roomType: ROOM_TYPE.PUBLIC,
+    userLimit: userLimit,
+    roomDescription: roomDescription,
+    categories: JSON.stringify(categories),
+    lastActive: new Date(),
   })
-    .then(r => socket.join(roomId, () => {
-      socket.emit(k.CREATE_ROOM, r.toJSON());
+    .then(r => {
+      room = r;
+      return r.addSocket(socket.socketDb);
+    })
+    .then(() => {
+      return socket.socketDb.reload();
+    })
+    .then(_ => socket.join(roomId, () => {
+      socket.emit(k.CREATE_ROOM, room.toJSON());
     }))
     .catch(e => console.error(e));
 };
@@ -482,13 +484,19 @@ const onListIssues = socket => data => {
 };
 
 io.on('connection', function(socket) {
-  SocketDB.create({
-    id: socket.id,
-    connected: true,
-  }).then(function(s) {
-    SOCKETS[socket.id] = socket;
-    socket.socketDb = s;
-  });
+  SocketDB
+    .findOrCreate({
+      where: {
+        id: socket.id,
+      },
+      defaults: {
+        connected: true,
+      }})
+    .spread((s, _) => {
+      SOCKETS[socket.id] = socket;
+      socket.socketDb = s;
+    })
+    .catch(e => console.error(e));
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
