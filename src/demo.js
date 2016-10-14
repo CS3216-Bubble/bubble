@@ -2,6 +2,9 @@
   var roomId;
   var currentRoom = $('#currentRoom');
   var isCounsellor = false;
+  var msgs = $('#messages');
+  var msgInput = $('#m');
+  var typing = $('#typingindicator');
 
   var socket = io();
 
@@ -18,13 +21,46 @@
 
   socket.on('join_room', function(msg) {
     console.log(`user ${msg.userId} joined this room`);
+    msgs.append(
+      `<li>${msg.userId} has joined the room</li>`
+    );
   });
 
   socket.on('add_message', function(msg) {
     console.log(`user ${msg.userId} said "${msg.message}"`);
-    $('#messages').append(
+    msgs.append(
       `<li>${msg.userId}: "${msg.message}"</li>`
     );
+  });
+
+  socket.on('typing', function(msg) {
+    typing.text(`${msg.userId} is typing`);
+  })
+
+  socket.on('stop_typing', function(msg) {
+    typing.text('');
+  })
+
+  socket.on('counsellor_online', function(data) {
+    $('#conline').text('Online as Counsellor');
+  });
+
+  socket.on('find_counsellor', function(data) {
+    console.log(data);
+    if (isCounsellor) {
+      $('#clist').html(`
+              Chatting with
+              <p>${data.userId}</p>
+          `);
+    } else {
+      $('#clist').html(`
+              Chatting with
+              <p>${data.counsellorId}</p>
+              <p>${data.counsellorName}</p>
+          `);
+    }
+
+    currentRoom.text(data.roomId);
   });
 
   $('form#list').submit(function() {
@@ -50,39 +86,21 @@
   });
 
   $('form#send').submit(function() {
-    const message = $('#m').val();
+    const message = msgInput.val();
     socket.emit('add_message', {
       roomId: currentRoom.text(),
       message,
     });
-    $('#messages').append(
+    msgs.append(
       `<li>${socket.id}: "${message}"</li>`
     );
-    $('#m').val('');
+    msgInput.val('');
     return false;
   });
 
   $('#fc').submit(function() {
     socket.emit('find_counsellor', {});
     return false;
-  });
-
-  socket.on('find_counsellor', function(data) {
-    console.log(data);
-    if (isCounsellor) {
-      $('#clist').html(`
-              Chatting with
-              <p>${data.userId}</p>
-          `);
-    } else {
-      $('#clist').html(`
-              Chatting with
-              <p>${data.counsellorId}</p>
-              <p>${data.counsellorName}</p>
-          `);
-    }
-
-    currentRoom.text(data.roomId);
   });
 
   $('#jac').submit(function() {
@@ -94,7 +112,14 @@
     return false;
   });
 
-  socket.on('counsellor_online', function(data) {
-    $('#conline').text('Online as Counsellor');
-  });
+  var kdtimeout;
+  msgInput.on('keydown', function() {
+    if (!roomId) { return; }
+    if (kdtimeout) { clearTimeout(kdtimeout) };
+    socket.emit('typing', { roomId })
+    kdtimeout = setTimeout(function() {
+      socket.emit('stop_typing', { roomId })
+    }, 500)
+  })
+
 })(jQuery, io); // eslint-disable-line no-undef
