@@ -6,6 +6,7 @@ import * as e from '../src/error_code';
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
+  ROOM_KEYS,
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
@@ -52,7 +53,7 @@ describe('API', function() {
 
     it('should return error when room limit is reached', function(done) {
       // the default room has a user limit of 2
-      clientShouldNotReceiveEvent(client2, k.JOIN_ROOM);
+      clientShouldNotReceiveEvent(client3, k.JOIN_ROOM);
       clientShouldReceiveAppError(client3, e.ROOM_FULL, done);
       client2.emit(k.JOIN_ROOM, { roomId: roomId });
       client.on(k.JOIN_ROOM, () => {
@@ -61,6 +62,7 @@ describe('API', function() {
       });
     });
 
+    it('should return error if trying to join a closed room');
     it('should return error when room is private (counsellor)');
     it('should return error when user is already in another room');
     it('should return error if user is already in room', function(done) {
@@ -73,6 +75,14 @@ describe('API', function() {
       client.on(k.JOIN_ROOM, function(data) {
         data.should.have.keys('userId');
         data.userId.should.equal(client2.id);
+        done();
+      });
+      client2.emit(k.JOIN_ROOM, { roomId });
+    });
+
+    it('should emit JOIN_ROOM event to user that just joined room', function(done) {
+      client2.on(k.JOIN_ROOM, function(room) {
+        room.should.have.keys(...ROOM_KEYS);
         done();
       });
       client2.emit(k.JOIN_ROOM, { roomId });
