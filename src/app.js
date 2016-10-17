@@ -486,20 +486,37 @@ const onListIssues = socket => data => {
   });
 };
 
+// const requireRoomId = socket => data => nextFn => {
+//   if (!data.roomId) {
+//     //emit error
+//   }
+//   return RoomDB.create()
+//   nextFn(socket, data, )
+// }
+
+// const onJoinRoom = socket => data => {
+//   requireRoomId(socket)(data)
+//     .then(room => {
+
+//     })
+// }
+
+// const middle = socket, event, middle, final => {
+//   fn = data => {
+//     const ms = middle.map(m => m(socket)).map(m => m(data));
+
+//   }
+//   socket.on(event, fn)
+
+// }
 io.on('connection', function(socket) {
-  SocketDB
-    .findOrCreate({
-      where: {
-        id: socket.id,
-      },
-      defaults: {
-        connected: true,
-      }})
-    .spread((s, _) => {
-      SOCKETS[socket.id] = socket;
-      socket.socketDb = s;
-    })
-    .catch(e => console.error(e));
+  SocketDB.create({
+    id: socket.id,
+    connected: true,
+  }).then(s => {
+    SOCKETS[socket.id] = socket;
+    socket.socketDb = s;
+  });
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
