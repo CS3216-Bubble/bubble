@@ -138,6 +138,9 @@ const onJoinRoom = ensureRoomExists(socket => data => {
           roomId: room.roomId,
           userId: socket.id,
         });
+        socket.emit(k.JOIN_ROOM, {
+          ...room.toJSON()
+        })
       });
     });
 });
