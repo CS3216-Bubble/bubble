@@ -3,7 +3,6 @@ import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as k from '../src/constants';
-import { SocketDB } from '../src/database';
 import * as e from '../src/error_code';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
@@ -38,19 +37,6 @@ describe('API', function() {
     server.close();
     done();
   });
-
-  // describe('connect', function() {
-  //   it('should have 2 clients connected', function(done) {
-  //     SocketDB.findAll({
-  //       where: {
-  //         connected: true,
-  //       },
-  //     }).then(sockets => {
-  //       sockets.length.should.equal(2);
-  //       done();
-  //     });
-  //   });
-  // });
 
   describe('set_user_name', function() {
     it('should return error when newName is not specified', function(done) {

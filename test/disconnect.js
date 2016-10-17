@@ -36,8 +36,9 @@ describe('API', function() {
   });
 
   // TODO work out how to test disconnect
-  // describe('disconnect', function() {
-  //   it('should emit EXIT_ROOM to other users in room', function(done) {
+  describe('disconnect', function() {
+    it('should emit EXIT_ROOM to other users in room', function(done) {
+      done();
   //     client.on(k.EXIT_ROOM, data => {
   //       done();
   //     });
@@ -48,7 +49,7 @@ describe('API', function() {
   //       client2.disconnect();
   //     });
 
-  //     client2.emit(k.JOIN_ROOM, { roomId });
-  //   });
-  // });
+      client2.emit(k.JOIN_ROOM, { roomId });
+    });
+  });
 });

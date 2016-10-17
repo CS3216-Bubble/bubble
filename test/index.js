@@ -6,12 +6,12 @@ beforeEach(function(done) {
   database
     .sync()
     .then(_ => database.truncate())
-    .then(_ => done())
+    .then(_ => done());
 });
 
 afterEach(function(done) {
   database
     .sync()
     .then(_ => database.truncate())
-    .then(_ => done())
+    .then(_ => done());
 });

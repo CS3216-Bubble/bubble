@@ -85,8 +85,6 @@ const onCreateRoom = socket => data => {
   }
 
   const roomId = uuid.v4();
-  let room;
-
   RoomDB.create({
     roomId,
     roomName: roomName,
@@ -119,7 +117,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.ROOM_FULL, message);
   }
 
-  room.numUsers = room.numUsers + 1
+  room.numUsers += 1;
   room.save()
     .then(() => {
       socket.join(room.roomId, () => {
@@ -129,7 +127,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         });
         socket.emit(k.JOIN_ROOM, {
           ...room.toJSON()
-        })
+        });
       });
     });
 });
@@ -141,7 +139,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
     const message = `User is not in room ${room.roomId}.`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
-  room.numUsers = room.numUsers - 1
+  room.numUsers -= 1;
   room.save()
     .then(
       () => {
@@ -274,16 +272,16 @@ const onDisconnect = socket => data => {
   Promise.all(Object.keys(socket.rooms).map(rid => {
     return RoomDB.findById(rid)
     .then(r => {
-      r.numUsers = r.numUsers - 1;
-      r.save()
-    })
+      r.numUsers -= 1;
+      r.save();
+    });
   }))
     .then(() => {
-    delete SOCKETS[socket.id];
+      delete SOCKETS[socket.id];
     // return socket.to(roomId).emit(k.EXIT_ROOM, {
     //   userId: socket.id,
     // });
-    })
+    });
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -313,8 +311,8 @@ const onSetUserName = socket => data => {
 const onFindCounsellor = socket => data => {
   const counsellorsAvailable = Object.keys(SOCKETS).filter(sid => {
     return SOCKETS[sid].counsellor &&
-      SOCKETS[sid].counsellor.userType === USER_TYPE.COUNSELLOR
-  })
+      SOCKETS[sid].counsellor.userType === USER_TYPE.COUNSELLOR;
+  });
   if (counsellorsAvailable.length === 0) {
     // If there are no counsellors available, we want to create an issue
     // to track that a user request was missed.
@@ -330,7 +328,6 @@ const onFindCounsellor = socket => data => {
   } else {
     // TODO: some sort of selection for counsellor, right now just use first
     const cSoc = SOCKETS[counsellorsAvailable[0]];
-    let room;
     const roomId = uuid.v4();
 
     // create an issue to track this match
@@ -372,7 +369,7 @@ const onFindCounsellor = socket => data => {
           });
         });
       });
-    }
+  }
 };
 
 const onCounsellorOnline = socket => data => {
