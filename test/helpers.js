@@ -6,7 +6,7 @@ import * as e from '../src/error_code';
 const INVALID_ROOM_ID = 'invalidroomid';
 const ROOM_KEYS = [
   'roomId', 'roomName', 'userLimit', 'roomDescription',
-  'categories', 'numberOfUsers', 'lastActive',
+  'categories', 'numUsers', 'lastActive',
 ];
 
 /**

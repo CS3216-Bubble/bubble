@@ -37,14 +37,6 @@ const UserDB = database.define('user', {
   // connectedVia: { type: Sequelize.STRING, primaryKey: true },
 });
 
-const SocketDB = database.define('socket', {
-  id: { type: Sequelize.STRING, primaryKey: true },
-  connected: { type: Sequelize.BOOLEAN, allowNull: false },
-});
-
-// UserDB.belongsTo(SocketDB);
-SocketDB.belongsTo(UserDB);
-
 const RoomDB = database.define('room', {
   roomId: { type: Sequelize.STRING, primaryKey: true },
   roomName: { type: Sequelize.STRING, allowNull: false },
@@ -54,12 +46,7 @@ const RoomDB = database.define('room', {
   categories: Sequelize.STRING,
   // socketIds: Sequelize.STRING,
   lastActive: Sequelize.DATE,
-}, {
-  getterMethods: {
-    numberOfUsers: function() {
-      return this.sockets ? this.sockets.length : 0;
-    },
-  },
+  numUsers: Sequelize.INTEGER,
 });
 
 const MessageDB = database.define('message', {
@@ -70,7 +57,6 @@ const MessageDB = database.define('message', {
 });
 
 RoomDB.hasMany(MessageDB);
-RoomDB.hasMany(SocketDB);
 
 const IssueDB = database.define('issue', {
   id: { type: Sequelize.STRING, primaryKey: true },
@@ -93,6 +79,5 @@ export {
   IssueDB,
   MessageDB,
   RoomDB,
-  SocketDB,
   UserDB,
 };

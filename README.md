@@ -140,7 +140,7 @@ Response:
     userLimit,
     roomDescription,
     categories,
-    numberOfUsers,
+    numUsers,
     lastActive,
 }
 ```
@@ -286,7 +286,7 @@ contains information about the counsellor and the private chat room created.
     userLimit,
     roomDescription,
     categories,
-    numberOfUsers,
+    numUsers,
     lastActive,
 }
 ```

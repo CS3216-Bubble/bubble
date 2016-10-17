@@ -12,7 +12,7 @@ import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
-import { IssueDB, RoomDB, MessageDB, SocketDB, UserDB } from './database';
+import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 
 const app = express();
 const server = createServer(app);
@@ -55,7 +55,7 @@ const ensureRoomExists = nextFn => socket => data => {
     where: {
       roomId
     },
-    include: [MessageDB, SocketDB],
+    include: [MessageDB],
   })
     .then(r => {
       if (r === null) {
@@ -95,15 +95,9 @@ const onCreateRoom = socket => data => {
     roomDescription: roomDescription,
     categories: JSON.stringify(categories),
     lastActive: new Date(),
+    numUsers: 1,
   })
-    .then(r => {
-      room = r;
-      return r.addSocket(socket.socketDb);
-    })
-    .then(() => {
-      return socket.socketDb.reload();
-    })
-    .then(_ => socket.join(roomId, () => {
+    .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, room.toJSON());
     }))
     .catch(e => console.error(e));
@@ -113,25 +107,20 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
   // ensures user is not already in the room
-  const userInRoom = Boolean(room.sockets.find(s => s.id === socket.id));
-  if (userInRoom) {
+  if (Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is already in room ${room.roomId}`;
     return emitAppError(socket, e.USER_ALREADY_IN_ROOM, message);
   }
 
   // ensures that we are under the user limit for the room
-  const aboveLimit = room.sockets.length + 1 > room.userLimit;
+  const aboveLimit = room.numUsers + 1 > room.userLimit;
   if (aboveLimit) {
     const message = `Room ${room.roomId} is at user limit of ${room.userLimit}.`;
     return emitAppError(socket, e.ROOM_FULL, message);
   }
 
-  SocketDB
-    .findById(socket.id)
-    .then(
-      s => room.addSocket(s)
-    )
-    .then(() => socket.socketDb.reload())
+  room.numUsers = room.numUsers + 1
+  room.save()
     .then(() => {
       socket.join(room.roomId, () => {
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
@@ -148,27 +137,22 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 const onExitRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
-  SocketDB
-    .findById(socket.id)
-    .then(s => {
-      if (socket.socketDb.roomRoomId !== room.roomId) {
-        const message = `User is not in room ${room.roomId}.`;
-        return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
+  if (Object.keys(socket.rooms).indexOf(room.roomId) < 0) {
+    const message = `User is not in room ${room.roomId}.`;
+    return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
+  }
+  room.numUsers = room.numUsers - 1
+  room.save()
+    .then(
+      () => {
+        socket.leave(room.roomId, () => {
+          socket.to(room.roomId).emit(k.EXIT_ROOM, {
+            roomId: room.roomId,
+            userId: socket.id,
+          });
+        });
       }
-      room
-        .removeSocket(s)
-        .then(() => socket.socketDb.reload())
-        .then(
-          () => {
-            socket.leave(room.roomId, () => {
-              socket.to(room.roomId).emit(k.EXIT_ROOM, {
-                roomId: room.roomId,
-                userId: socket.id,
-              });
-            });
-          }
-        );
-    });
+    );
 });
 
 const onTyping = ensureRoomExists(socket => data => {
@@ -208,8 +192,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_MESSAGE, message);
   }
 
-  const userNotInRoom = !room.sockets.find(s => s.id === socket.id);
-  if (userNotInRoom) {
+  if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
@@ -239,8 +222,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
   const room = data.room;
   const { reaction } = data;
 
-  const userNotInRoom = !room.sockets.find(s => s.id === socket.id);
-  if (userNotInRoom) {
+  if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
@@ -274,11 +256,11 @@ const onAddReaction = ensureRoomExists(socket => data => {
 const onListRooms = socket => data => {
   RoomDB
     .findAll({
-      include: [MessageDB, SocketDB],
+      include: [MessageDB],
     })
     .then(rooms => {
       return rooms
-        .filter(r => r.sockets.length > 0)
+        .filter(r => r.numUsers > 0)
         .map(r => r.toJSON());
     })
     .then(rooms => {
@@ -288,35 +270,20 @@ const onListRooms = socket => data => {
 };
 
 const onDisconnect = socket => data => {
-  let roomId;
-  SocketDB
-    .findById(socket.id)
-  .then(s => {
-    if (s === null) {
-      return;
-    }
-    s.connected = false;
-    s.save()
-      .then(s => {
-        if (!s.roomRoomId) {
-          return;
-        }
-        roomId = s.roomRoomId;
-        return RoomDB.findById(s.roomRoomId, {
-          include: [SocketDB],
-        });
-      })
-      .then(room => {
-        if (!room) return;
-        return room.removeSocket(s);
-      })
-      .then(() => {
-        delete SOCKETS[socket.id];
-        return socket.to(roomId).emit(k.EXIT_ROOM, {
-          userId: socket.id,
-        });
-      });
-  });
+  // this doesn't work because socket won't have the rooms anymore
+  Promise.all(Object.keys(socket.rooms).map(rid => {
+    return RoomDB.findById(rid)
+    .then(r => {
+      r.numUsers = r.numUsers - 1;
+      r.save()
+    })
+  }))
+    .then(() => {
+    delete SOCKETS[socket.id];
+    // return socket.to(roomId).emit(k.EXIT_ROOM, {
+    //   userId: socket.id,
+    // });
+    })
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -344,80 +311,68 @@ const onSetUserName = socket => data => {
 };
 
 const onFindCounsellor = socket => data => {
-  SocketDB.findAll({
-    where: {
-      connected: true,
-    },
-    include: [{
-      model: UserDB,
-      where: { userType: USER_TYPE.COUNSELLOR },
-    }]
+  const counsellorsAvailable = Object.keys(SOCKETS).filter(sid => {
+    return SOCKETS[sid].counsellor &&
+      SOCKETS[sid].counsellor.userType === USER_TYPE.COUNSELLOR
   })
-  .then(counsellorsAvailable => {
-    if (counsellorsAvailable.length === 0) {
-      // If there are no counsellors available, we want to create an issue
-      // to track that a user request was missed.
-      // The next time a counsellor logs in we can deliver a notification.
-      IssueDB.create({
-        id: uuid.v4(),
-        issueType: ISSUE_TYPE.USER_MISSED,
-        userId: socket.id,
-      }).then(() => {
-        const message = 'No counsellors available';
-        emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
-      });
-    } else {
-      // TODO: some sort of selection for counsellor, right now just use first
-      const counsellorSocketDb = counsellorsAvailable[0];
-      let room;
-      const roomId = uuid.v4();
+  if (counsellorsAvailable.length === 0) {
+    // If there are no counsellors available, we want to create an issue
+    // to track that a user request was missed.
+    // The next time a counsellor logs in we can deliver a notification.
+    IssueDB.create({
+      id: uuid.v4(),
+      issueType: ISSUE_TYPE.USER_MISSED,
+      userId: socket.id,
+    }).then(() => {
+      const message = 'No counsellors available';
+      emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
+    });
+  } else {
+    // TODO: some sort of selection for counsellor, right now just use first
+    const cSoc = SOCKETS[counsellorsAvailable[0]];
+    let room;
+    const roomId = uuid.v4();
 
-      // create an issue to track this match
-      IssueDB
-        .create({
-          id: uuid.v4(),
-          issueType: ISSUE_TYPE.USER_REQUESTED,
-          userId: socket.id,
-          counsellorId: counsellorSocketDb.user.id,
-        })
-        .then(() => {
-          return RoomDB.create({
-            roomId,
-            roomName: 'Chat with counsellor',
-            roomType: ROOM_TYPE.PRIVATE,
-            userLimit: 2,
-            roomDescription: '',
-            categories: '[]',
-            lastActive: new Date(),
-          });
-        })
-        .then(r => {
-          room = r;
-          return SocketDB.findById(socket.id);
-        })
-        .then(s => room.addSockets([s, counsellorSocketDb]))
-        .then(() => {
-          const counsellorSocket = SOCKETS[counsellorSocketDb.id];
-          const cJson = {
-            counsellorName: counsellorSocketDb.user.name,
-            counsellorId: counsellorSocketDb.user.id,
-          };
-          socket.join(roomId, () => {
-            counsellorSocket.join(roomId, () => {
-              socket.emit(k.FIND_COUNSELLOR, {
-                ...cJson,
-                ...room.toJSON(),
-              });
-              counsellorSocket.emit(k.FIND_COUNSELLOR, {
-                userId: socket.id,
-                ...cJson,
-                ...room.toJSON(),
-              });
+    // create an issue to track this match
+    IssueDB
+      .create({
+        id: uuid.v4(),
+        issueType: ISSUE_TYPE.USER_REQUESTED,
+        userId: socket.id,
+        counsellorId: cSoc.counsellor.id,
+      })
+      .then(() => {
+        return RoomDB.create({
+          roomId,
+          roomName: 'Chat with counsellor',
+          roomType: ROOM_TYPE.PRIVATE,
+          userLimit: 2,
+          numUsers: 2,
+          roomDescription: '',
+          categories: '[]',
+          lastActive: new Date(),
+        });
+      })
+      .then(room => {
+        const cJson = {
+          counsellorName: cSoc.counsellor.name,
+          counsellorId: cSoc.counsellor.id,
+        };
+        socket.join(roomId, () => {
+          cSoc.join(roomId, () => {
+            socket.emit(k.FIND_COUNSELLOR, {
+              ...cJson,
+              ...room.toJSON(),
+            });
+            cSoc.emit(k.FIND_COUNSELLOR, {
+              userId: socket.id,
+              ...cJson,
+              ...room.toJSON(),
             });
           });
         });
+      });
     }
-  });
 };
 
 const onCounsellorOnline = socket => data => {
@@ -434,11 +389,8 @@ const onCounsellorOnline = socket => data => {
       return c;
     })
     .then(c => {
-      socket.socketDb.userId = c.id;
-      return socket.socketDb.save();
-    })
-    .then(sdb => {
-      socket.socketDb = sdb;
+      socket.isC = true;
+      socket.counsellor = c;
       socket.emit(k.COUNSELLOR_ONLINE, {});
     });
   // // TODO errors when data not provided
@@ -454,8 +406,7 @@ const onReportUser = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_USER_TO_REPORT, message);
   }
 
-  const userNotInRoom = !room.sockets.find(s => s.id === userToReport);
-  if (userNotInRoom) {
+  if (!SOCKETS[userToReport] || !Object.keys(SOCKETS[userToReport].rooms).includes(room.roomId)) {
     let message = `User is not in room`;
     return emitAppError(socket, e.NO_USER_TO_REPORT, message);
   }
@@ -510,13 +461,7 @@ const onListIssues = socket => data => {
 
 // }
 io.on('connection', function(socket) {
-  SocketDB.create({
-    id: socket.id,
-    connected: true,
-  }).then(s => {
-    SOCKETS[socket.id] = socket;
-    socket.socketDb = s;
-  });
+  SOCKETS[socket.id] = socket;
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
