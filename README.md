@@ -29,14 +29,26 @@ Each header is an event name, and the payload is data that clients can send.
 ```
 UserId : String
 UserName : String
+UserType: String
+
 RoomId : String
 RoomName : String
 RoomDescription: String
+RoomType: String
 UserLimit : Integer
-Reason : String
-Message : String
-Reaction : Integer
 Categories : String[]
+
+Message : String
+MessageType: String
+ReactionType: String
+
+Reason : String
+
+IssueType: String
+
+Room: {
+    RoomId, RoomName, RoomDescription, RoomType, UserLimit, Categories
+}
 ```
 
 ### create_room
@@ -115,7 +127,7 @@ Response:
 
 ```
 {
-    rooms: [RoomId]
+    rooms: [Room]
 }
 ```
 
@@ -134,14 +146,14 @@ Response:
 
 ```
 {
-    roomId,
-    roomName,
-    roomType,
-    userLimit,
-    roomDescription,
-    categories,
-    numUsers,
-    lastActive,
+    roomId: RoomId,
+    roomName: RoomName,
+    roomType: RoomType,
+    userLimit: UserLimit,
+    roomDescription: RoomDescription,
+    categories: Categories,
+    numUsers: Integer,
+    lastActive: Date,
 }
 ```
 
@@ -229,7 +241,7 @@ Show reaction to all connected users
 {
     user: UserId,
     roomId: RoomId,
-    reaction: Reaction,
+    reaction: ReactionType,
 }
 ```
 
@@ -239,7 +251,7 @@ Emits event `add_reaction` to all other users in room:
 {
     user: UserId,
     roomId: RoomId,
-    reaction: Reaction,
+    reaction: ReactionType,
 }
 ```
 
@@ -259,7 +271,7 @@ Emits event `set_user_name` to all other users in all rooms user is in
 ```
 {
     userId: UserId,
-    newName: String,
+    newName: UserName,
 }
 ```
 
@@ -280,14 +292,14 @@ contains information about the counsellor and the private chat room created.
 {
     counsellorId: String,
     counsellorName: String,
-    roomId,
-    roomName,
-    roomType,
-    userLimit,
-    roomDescription,
-    categories,
-    numUsers,
-    lastActive,
+    roomId: RoomId,
+    roomName: RoomName,
+    roomType: RoomType,
+    userLimit: UserLimit,
+    roomDescription: RoomDescription,
+    categories: Categories,
+    numUsers: Integer,
+    lastActive: Date,
 }
 ```
 
@@ -303,6 +315,6 @@ counsellor goes online
 ```
 {
     userId: UserId,
-    newName: String,
+    newName: UserName,
 }
 ```

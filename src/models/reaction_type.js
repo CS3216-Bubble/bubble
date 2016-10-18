@@ -1,5 +1,5 @@
-const ENCOURAGE = 0;
-const THANK = 1;
+const ENCOURAGE = 'ENCOURAGE';
+const THANK = 'THANK';
 
 const REACTION_TYPE = {
   ENCOURAGE,
