@@ -106,6 +106,11 @@ const onCreateRoom = socket => data => {
 const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
+  if (room.numUsers === 0) {
+    const message = `Room ${room.roomId} is closed`;
+    return emitAppError(socket, e.ROOM_CLOSED, message);
+  }
+
   // ensures user is not already in the room
   if (Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is already in room ${room.roomId}`;
@@ -166,6 +171,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
             roomId: room.roomId,
             userId: socket.id,
           });
+          socket.emit(k.EXIT_ROOM);
         });
       }
     );
