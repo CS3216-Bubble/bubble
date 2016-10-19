@@ -18,6 +18,7 @@ const app = express();
 const server = createServer(app);
 const io = socketio(server);
 const SOCKETS = {};
+const ROOMS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -96,6 +97,7 @@ const onCreateRoom = socket => data => {
     numUsers: 1,
   })
     .then(room => socket.join(roomId, () => {
+      ROOMS[roomId] = { [socket.id]: socket }
       socket.emit(k.CREATE_ROOM, room.toJSON());
     }))
     .catch(e => console.error(e));
@@ -121,12 +123,14 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   room.save()
     .then(() => {
       socket.join(room.roomId, () => {
+        ROOMS[room.roomId][socket.id] = socket;
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
           roomId: room.roomId,
           userId: socket.id,
         });
         socket.emit(k.JOIN_ROOM, {
-          ...room.toJSON()
+          ...room.toJSON(),
+          participants: Object.keys(ROOMS[room.roomId]),
         });
       });
     });
@@ -144,6 +148,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
     .then(
       () => {
         socket.leave(room.roomId, () => {
+          delete ROOMS[room.roomId][socket.id];
           socket.to(room.roomId).emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,

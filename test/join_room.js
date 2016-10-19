@@ -83,6 +83,8 @@ describe('API', function() {
     it('should emit JOIN_ROOM event to user that just joined room', function(done) {
       client2.on(k.JOIN_ROOM, function(room) {
         room.should.have.keys(...ROOM_KEYS);
+        room.should.have.keys('participants');
+        room.participants.should.containEql(client.id);
         done();
       });
       client2.emit(k.JOIN_ROOM, { roomId });
