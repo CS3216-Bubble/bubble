@@ -38,7 +38,15 @@ RoomType: String
 UserLimit : Integer
 Categories : String[]
 
-Message : String
+Message: {
+    messageType: MessageType,
+    content : MessageContent,
+    createdAt : Date,
+    updatedAt : Date,
+    userId : UserId,
+    roomRoomId : RoomId,
+}
+MessageContent : String
 MessageType: String
 ReactionType: String
 
@@ -92,6 +100,24 @@ Emits event `join_room` to all users connected to room with payload:
 {
     roomId: RoomId,
     user: UserId,
+}
+```
+
+And to the newly joined user, we emit `join_room` with a more verbose payload:
+
+```
+{
+    roomId: RoomId,
+    roomId: RoomId,
+    roomName: RoomName,
+    roomType: RoomType,
+    userLimit: UserLimit,
+    roomDescription: RoomDescription,
+    categories: Categories,
+    numUsers: Integer,
+    lastActive: Date,
+    messages: [Message],
+    participants: [UserId]
 }
 ```
 
@@ -218,7 +244,7 @@ Show message to all connected users
 {
     roomId: RoomId,
     user: UserId,
-    message: Message,
+    message: MessageContent,
 }
 ```
 
@@ -228,7 +254,7 @@ Emits event `add_message` to all other users in room:
 {
     user: UserId,
     roomId: RoomId,
-    message: Message,
+    message: MessageContent,
 }
 ```
 
