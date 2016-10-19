@@ -91,6 +91,22 @@ describe('API', function() {
     });
 
     it('should update room with new member');
-    it('should show message history up to 24 hours');
+    it('should show message history up to 24 hours', function(done) {
+      client.emit(k.ADD_MESSAGE, {
+        roomId,
+        message: '1',
+      })
+      client.emit(k.ADD_MESSAGE, {
+        roomId,
+        message: '2',
+      })
+      client2.on(k.JOIN_ROOM, function(room) {
+        room.should.have.keys('messages');
+        room.messages.should.have.length(2);
+        console.log(room.messages);
+        done();
+      });
+      client2.emit(k.JOIN_ROOM, { roomId });
+    });
   });
 });

@@ -120,8 +120,20 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   }
 
   room.numUsers += 1;
-  room.save()
+  room
+    .save()
     .then(() => {
+      return MessageDB.findAll({
+        where: {
+          roomRoomId: room.roomId,
+          createdAt: {
+            $lt: new Date(),
+            $gt: new Date(new Date() - 24 * 60 * 60 * 1000)
+          }
+        }
+      })
+    })
+    .then((msgs) => {
       socket.join(room.roomId, () => {
         ROOMS[room.roomId][socket.id] = socket;
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
@@ -130,6 +142,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         });
         socket.emit(k.JOIN_ROOM, {
           ...room.toJSON(),
+          messages: msgs,
           participants: Object.keys(ROOMS[room.roomId]),
         });
       });
