@@ -65,6 +65,22 @@ describe('API', function() {
       client2.emit(k.JOIN_ROOM, { roomId });
     });
 
-    it('should update room member list');
+    it('should update room participant list', function(done) {
+      client.on(k.VIEW_ROOM, data => {
+        data.roomId.should.equal(roomId);
+        data.should.have.keys('participants');
+        data.participants.should.have.length(1);
+        data.participants.should.containEql(client.id);
+        data.participants.should.not.containEql(client2.id);
+        done();
+      })
+      client.on(k.EXIT_ROOM, data => {
+        client.emit(k.VIEW_ROOM, { roomId });
+      });
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.EXIT_ROOM, { roomId });
+      });
+      client2.emit(k.JOIN_ROOM, { roomId });
+    });
   });
 });

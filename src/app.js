@@ -303,7 +303,10 @@ const onDisconnect = socket => data => {
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
-  socket.emit(k.VIEW_ROOM, data.room.toJSON());
+  socket.emit(k.VIEW_ROOM, {
+    ...data.room.toJSON(),
+    participants: Object.keys(ROOMS[data.room.roomId]),
+  });
 });
 
 const onSetUserName = socket => data => {
