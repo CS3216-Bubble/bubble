@@ -95,11 +95,11 @@ describe('API', function() {
       client.emit(k.ADD_MESSAGE, {
         roomId,
         message: '1',
-      })
+      });
       client.emit(k.ADD_MESSAGE, {
         roomId,
         message: '2',
-      })
+      });
       client2.on(k.JOIN_ROOM, function(room) {
         room.should.have.keys('messages');
         room.messages.should.have.length(2);

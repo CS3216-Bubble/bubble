@@ -97,7 +97,7 @@ const onCreateRoom = socket => data => {
     numUsers: 1,
   })
     .then(room => socket.join(roomId, () => {
-      ROOMS[roomId] = { [socket.id]: socket }
+      ROOMS[roomId] = { [socket.id]: socket };
       socket.emit(k.CREATE_ROOM, room.toJSON());
     }))
     .catch(e => console.error(e));
@@ -131,9 +131,9 @@ const onJoinRoom = ensureRoomExists(socket => data => {
             $gt: new Date(new Date() - 24 * 60 * 60 * 1000)
           }
         }
-      })
+      });
     })
-    .then((msgs) => {
+    .then(msgs => {
       socket.join(room.roomId, () => {
         ROOMS[room.roomId][socket.id] = socket;
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
