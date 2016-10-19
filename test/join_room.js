@@ -63,11 +63,11 @@ describe('API', function() {
     });
 
     it('should return error if trying to join a closed room', function(done) {
-      client.emit(k.EXIT_ROOM, { roomId })
+      client.emit(k.EXIT_ROOM, { roomId });
       clientShouldReceiveAppError(client2, e.ROOM_CLOSED, done);
       client.on(k.EXIT_ROOM, () => {
         client2.emit(k.JOIN_ROOM, { roomId });
-      })
+      });
     });
 
     it('should return error when room is private (counsellor)');

@@ -73,7 +73,7 @@ describe('API', function() {
         data.participants.should.containEql(client.id);
         data.participants.should.not.containEql(client2.id);
         done();
-      })
+      });
       client.on(k.EXIT_ROOM, data => {
         client.emit(k.VIEW_ROOM, { roomId });
       });
