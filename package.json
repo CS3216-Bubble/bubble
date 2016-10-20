@@ -31,7 +31,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src/index.js --exec babel-node",
-    "build": "babel src -d dist && cp src/index.html dist/index.html&& cp prod.env dist/prod.env",
+    "build": "NODE_ENV=prod babel src -d dist && cp src/index.html dist/index.html&& cp prod.env dist/prod.env",
     "serve": "NODE_ENV=prod node dist/index.js",
     "mocha": "NODE_ENV=test mocha --compilers js:babel-register --bail --check-leaks test/",
     "test": "npm run mocha && npm run lint && npm run flow",
