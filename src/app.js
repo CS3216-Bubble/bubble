@@ -127,17 +127,6 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   room.numUsers += 1;
   room
     .save()
-    .then(() => {
-      return MessageDB.findAll({
-        where: {
-          roomRoomId: room.roomId,
-          createdAt: {
-            $lt: new Date(),
-            $gt: new Date(new Date() - 24 * 60 * 60 * 1000)
-          }
-        }
-      });
-    })
     .then(msgs => {
       socket.join(room.roomId, () => {
         ROOMS[room.roomId][socket.id] = socket;
@@ -148,12 +137,21 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         socket.emit(k.JOIN_ROOM, {
           ...room.toJSON(),
           userId: socket.id,
-          messages: msgs,
+          messages: filterMessages(room.messages),
           participants: Object.keys(ROOMS[room.roomId]),
         });
       });
     });
 });
+
+function filterMessages(messages) {
+  return messages.filter(m => {
+    const now = new Date();
+    const yesterday = now - (24 * 60 * 60 * 1000);
+    const c = new Date(m.createdAt);
+    return c >= yesterday && c <= now;
+  });
+}
 
 const onExitRoom = ensureRoomExists(socket => data => {
   const room = data.room;

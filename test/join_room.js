@@ -99,21 +99,32 @@ describe('API', function() {
 
     it('should update room with new member');
     it('should show message history up to 24 hours', function(done) {
-      client.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: '1',
+      let mCount = 0;
+
+      client2.emit(k.JOIN_ROOM, { roomId });
+
+      client.on(k.JOIN_ROOM, () => {
+        ['1', '2'].forEach(message => {
+          client.emit(k.ADD_MESSAGE, { roomId, message });
+        });
       });
-      client.emit(k.ADD_MESSAGE, {
-        roomId,
-        message: '2',
+
+      client2.on(k.ADD_MESSAGE, () => {
+        mCount++;
+        if (mCount === 2) {
+          client2.emit(k.EXIT_ROOM, { roomId });
+        }
       });
-      client2.on(k.JOIN_ROOM, function(room) {
+
+      client.on(k.EXIT_ROOM, () => {
+        client3.emit(k.JOIN_ROOM, { roomId });
+      });
+
+      client3.on(k.JOIN_ROOM, function(room) {
         room.should.have.keys('messages');
         room.messages.should.have.length(2);
-        console.log(room.messages);
         done();
       });
-      client2.emit(k.JOIN_ROOM, { roomId });
     });
   });
 });

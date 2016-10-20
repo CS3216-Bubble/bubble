@@ -15,6 +15,11 @@
     console.log(msg);
   });
 
+  socket.on('view_room', function(msg) {
+    console.log('viewing rooms:');
+    console.log(msg);
+  });
+
   socket.on('create_room', function(msg) {
     console.log(`room created ${msg.roomId}`);
     roomId = msg.roomId;
@@ -90,6 +95,14 @@
     });
     currentRoom.text(roomId);
     exitRoom.show();
+    return false;
+  });
+
+  $('form#view').submit(function() {
+    roomId = $('#viewroomid').val();
+    socket.emit('view_room', {
+      roomId,
+    });
     return false;
   });
 

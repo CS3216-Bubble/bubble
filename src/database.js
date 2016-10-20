@@ -56,6 +56,7 @@ const MessageDB = database.define('message', {
   content: { type: Sequelize.TEXT, allowNull: false },
 });
 
+MessageDB.belongsTo(RoomDB);
 RoomDB.hasMany(MessageDB);
 
 const IssueDB = database.define('issue', {
