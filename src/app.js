@@ -147,6 +147,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         });
         socket.emit(k.JOIN_ROOM, {
           ...room.toJSON(),
+          userId: socket.id,
           messages: msgs,
           participants: Object.keys(ROOMS[room.roomId]),
         });
