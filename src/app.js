@@ -18,7 +18,6 @@ const app = express();
 const server = createServer(app);
 const io = socketio(server);
 const SOCKETS = {};
-const ROOMS = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -97,7 +96,6 @@ const onCreateRoom = socket => data => {
     numUsers: 1,
   })
     .then(room => socket.join(roomId, () => {
-      ROOMS[roomId] = { [socket.id]: socket };
       socket.emit(k.CREATE_ROOM, room.toJSON());
     }))
     .catch(e => console.error(e));
@@ -125,20 +123,22 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   }
 
   room.numUsers += 1;
-  room
+  return room
     .save()
     .then(msgs => {
-      socket.join(room.roomId, () => {
-        ROOMS[room.roomId][socket.id] = socket;
+      return socket.join(room.roomId, () => {
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
           roomId: room.roomId,
           userId: socket.id,
         });
-        socket.emit(k.JOIN_ROOM, {
-          ...room.toJSON(),
-          userId: socket.id,
-          messages: filterMessages(room.messages),
-          participants: Object.keys(ROOMS[room.roomId]),
+
+        io.in(room.roomId).clients((err, clients) => {
+          socket.emit(k.JOIN_ROOM, {
+            ...room.toJSON(),
+            userId: socket.id,
+            messages: filterMessages(room.messages),
+            participants: clients,
+          });
         });
       });
     });
@@ -165,7 +165,6 @@ const onExitRoom = ensureRoomExists(socket => data => {
     .then(
       () => {
         socket.leave(room.roomId, () => {
-          delete ROOMS[room.roomId][socket.id];
           socket.to(room.roomId).emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
@@ -313,9 +312,11 @@ const onDisconnecting = socket => data => {
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
-  socket.emit(k.VIEW_ROOM, {
-    ...data.room.toJSON(),
-    participants: Object.keys(ROOMS[data.room.roomId]),
+  io.in(data.room.roomId).clients((err, clients) => {
+    socket.emit(k.VIEW_ROOM, {
+      ...data.room.toJSON(),
+      participants: clients,
+    });
   });
 });
 
