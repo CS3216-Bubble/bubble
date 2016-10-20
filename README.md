@@ -343,3 +343,64 @@ counsellor goes online
     newName: UserName,
 }
 ```
+
+## Errors
+
+When there are app errors, such as joining a room that is too full,
+a `bubble_error` event is emitted to the socket that sent the event
+that triggered the error.
+
+All events of such type will have a `code` and a `message`.
+
+`code` specify the type of error,
+and `message` is a human readable description of what the error is.
+
+All error codes are specified in `src/error_code.js`.
+
+### NO_MESSAGE
+
+No message specified in `add_message`
+
+### NO_REACTION
+
+No reaction specified in `add_reaction`
+
+### NO_NAME
+
+No name specified in `set_user_name`
+
+### NO_ROOM_ID
+
+No room id specified in events that require an id, such as `join_room` and `add_message`.
+
+### NO_ROOM_NAME
+
+Room name not specified when `create_room`.
+
+### ROOM_FULL
+
+Room is currently full.
+
+### ROOM_ID_NOT_FOUND
+
+Specified room id cannot be found.
+
+### USER_ALREADY_IN_ROOM
+
+User tries to `join_room`, and is already in the room.
+
+### USER_NOT_IN_ROOM
+
+User tries to `add_message` or `add_reaction` to a room user is not in.
+
+### COUNSELLOR_UNAVAILABLE
+
+User `find_counsellor` but no counsellor is online
+
+### NO_USER_TO_REPORT
+
+User `report_user` but no `userToReport` is specified
+
+### ROOM_CLOSED
+
+User `join_room` a room that is closed/empty.
