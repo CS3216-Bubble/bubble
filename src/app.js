@@ -37,14 +37,16 @@ const emitAppError = (socket, code, message) => {
 
 /**
  * Tentative helper until we make categories a FK
+ * @param {object} room room model
+ * @return {object} room
  */
 const roomToJSON = room => {
   const j = room.toJSON();
   return {
     ...j,
     categories: JSON.parse(j.categories),
-  }
-}
+  };
+};
 
 /**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
