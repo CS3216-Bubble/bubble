@@ -243,7 +243,6 @@ Show message to all connected users
 ```
 {
     roomId: RoomId,
-    user: UserId,
     message: MessageContent,
 }
 ```
