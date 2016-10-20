@@ -36,6 +36,17 @@ const emitAppError = (socket, code, message) => {
 };
 
 /**
+ * Tentative helper until we make categories a FK
+ */
+const roomToJSON = room => {
+  const j = room.toJSON();
+  return {
+    ...j,
+    categories: JSON.parse(j.categories),
+  }
+}
+
+/**
  * Checks that `roomId` is provided in `data`, and that `roomId` exists
  * Calls nextFn with `room` added to `data`.
  *
@@ -96,7 +107,7 @@ const onCreateRoom = socket => data => {
     numUsers: 1,
   })
     .then(room => socket.join(roomId, () => {
-      socket.emit(k.CREATE_ROOM, room.toJSON());
+      socket.emit(k.CREATE_ROOM, roomToJSON(room));
     }))
     .catch(e => console.error(e));
 };
@@ -134,7 +145,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
         io.in(room.roomId).clients((err, clients) => {
           socket.emit(k.JOIN_ROOM, {
-            ...room.toJSON(),
+            ...roomToJSON(room),
             userId: socket.id,
             messages: filterMessages(room.messages),
             participants: clients,
@@ -281,7 +292,7 @@ const onListRooms = socket => data => {
     .then(rooms => {
       return rooms
         .filter(r => r.numUsers > 0)
-        .map(r => r.toJSON());
+        .map(roomToJSON);
     })
     .then(rooms => {
       rooms.sort((a, b) => a.lastActive - b.lastActive);
@@ -314,7 +325,7 @@ const onDisconnecting = socket => data => {
 const onViewRoom = ensureRoomExists(socket => data => {
   io.in(data.room.roomId).clients((err, clients) => {
     socket.emit(k.VIEW_ROOM, {
-      ...data.room.toJSON(),
+      ...roomToJSON(data.room),
       participants: clients,
     });
   });
@@ -386,17 +397,16 @@ const onFindCounsellor = socket => data => {
         const cJson = {
           counsellorName: cSoc.counsellor.name,
           counsellorId: cSoc.counsellor.id,
+          ...roomToJSON(room),
         };
         socket.join(roomId, () => {
           cSoc.join(roomId, () => {
             socket.emit(k.FIND_COUNSELLOR, {
               ...cJson,
-              ...room.toJSON(),
             });
             cSoc.emit(k.FIND_COUNSELLOR, {
               userId: socket.id,
               ...cJson,
-              ...room.toJSON(),
             });
           });
         });
