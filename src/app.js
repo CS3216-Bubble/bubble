@@ -292,20 +292,25 @@ const onListRooms = socket => data => {
 };
 
 const onDisconnect = socket => data => {
-  // this doesn't work because socket won't have the rooms anymore
-  Promise.all(Object.keys(socket.rooms).map(rid => {
+  delete SOCKETS[socket.id];
+};
+
+const onDisconnecting = socket => data => {
+  return Promise.all(Object.keys(socket.rooms).map(rid => {
+    if (rid === socket.id) {
+      return null;
+    }
     return RoomDB.findById(rid)
-    .then(r => {
-      r.numUsers -= 1;
-      r.save();
-    });
-  }))
-    .then(() => {
-      delete SOCKETS[socket.id];
-    // return socket.to(roomId).emit(k.EXIT_ROOM, {
-    //   userId: socket.id,
-    // });
-    });
+      .then(r => {
+        r.numUsers -= 1;
+        r.save();
+      })
+      .then(() => {
+        return socket.to(rid).emit(k.EXIT_ROOM, {
+          userId: socket.id,
+        });
+      });
+  }));
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
@@ -495,6 +500,7 @@ io.on('connection', function(socket) {
   socket.on(k.ADD_REACTION, onAddReaction(socket));
   socket.on(k.LIST_ROOMS, onListRooms(socket));
   socket.on(k.DISCONNECT, onDisconnect(socket));
+  socket.on(k.DISCONNECTING, onDisconnecting(socket));
   socket.on(k.VIEW_ROOM, onViewRoom(socket));
   socket.on(k.SET_USER_NAME, onSetUserName(socket));
   socket.on(k.FIND_COUNSELLOR, onFindCounsellor(socket));
