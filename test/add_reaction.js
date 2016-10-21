@@ -79,6 +79,21 @@ describe('API', function() {
       });
     });
 
+    it('should emit add_reaction event to user who sent reaction', function(done) {
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_REACTION, {
+          roomId,
+          reaction: REACTION_TYPE.THANK,
+        });
+      });
+      client2.on(k.ADD_REACTION, data => {
+        data.should.have.keys('userId', 'roomId', 'reaction');
+        data.userId.should.equal(client2.id);
+        done();
+      });
+    });
+
     it('should not emit add_reaction event to users in other room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {

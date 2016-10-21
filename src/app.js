@@ -294,6 +294,12 @@ const onAddReaction = ensureRoomExists(socket => data => {
         userId: socket.id,
         reaction,
       });
+      socket.emit(k.ADD_REACTION, {
+        roomId: room.roomId,
+        userId: socket.id,
+        reaction,
+        sentByMe: true,
+      })
     })
     .catch(e => console.error(e));
 });
