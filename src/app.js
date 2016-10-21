@@ -75,6 +75,9 @@ const ensureRoomExists = nextFn => socket => data => {
       roomId
     },
     include: [MessageDB],
+    order: [
+      [MessageDB, 'createdAt', 'DESC'],
+    ],
   })
     .then(r => {
       if (r === null) {
@@ -156,7 +159,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
           socket.emit(k.JOIN_ROOM, {
             ...roomToJSON(room),
             userId: socket.id,
-            messages: filterMessages(room.messages),
+            messages: filterMessagesLimitX(room.messages),
             participants: clients,
           });
         });
@@ -164,7 +167,11 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     });
 });
 
-function filterMessages(messages) {
+function filterMessagesLimitX(messages) {
+  return messages.splice(0, 100);
+}
+
+function filterMessages24Hr(messages) {
   return messages.filter(m => {
     const now = new Date();
     const yesterday = now - (24 * 60 * 60 * 1000);

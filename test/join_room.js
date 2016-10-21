@@ -98,7 +98,8 @@ describe('API', function() {
     });
 
     it('should update room with new member');
-    it('should show message history up to 24 hours', function(done) {
+
+    it('should show messages sorted with newest first', function(done) {
       let mCount = 0;
 
       client2.emit(k.JOIN_ROOM, { roomId });
@@ -116,13 +117,17 @@ describe('API', function() {
         }
       });
 
-      client.on(k.EXIT_ROOM, () => {
-        client3.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.EXIT_ROOM, (data) => {
+        if (data.userId === client2.id) {
+          client3.emit(k.JOIN_ROOM, { roomId });
+        }
       });
 
       client3.on(k.JOIN_ROOM, function(room) {
         room.should.have.keys('messages');
         room.messages.should.have.length(2);
+        room.messages[1].createdAt.should.be.below(
+          room.messages[0].createdAt);
         done();
       });
     });
