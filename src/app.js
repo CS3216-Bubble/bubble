@@ -1,6 +1,8 @@
 // @flow
 
 import express from 'express';
+import process from 'process';
+import raven from 'raven';
 import socketio from 'socket.io';
 import uuid from 'uuid';
 import { createServer } from 'http';
@@ -17,6 +19,10 @@ import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 const app = express();
 const server = createServer(app);
 const io = socketio(server);
+
+app.use(raven.middleware.express.requestHandler(process.env.RAVEN_URL));
+app.use(raven.middleware.express.errorHandler(process.env.RAVEN_URL));
+
 const SOCKETS = {};
 
 app.get('/', function(req, res) {
