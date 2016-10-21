@@ -42,6 +42,7 @@ const MessageDB = database.define('message', {
   messageType: Sequelize.ENUM( // eslint-disable-line new-cap
     MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION),
   content: { type: Sequelize.TEXT, allowNull: false },
+  targetUser: Sequelize.STRING,
 });
 
 MessageDB.belongsTo(RoomDB);

@@ -265,7 +265,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
 
 const onAddReaction = ensureRoomExists(socket => data => {
   const room = data.room;
-  const { reaction } = data;
+  const { reaction, targetUser } = data;
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
@@ -277,12 +277,18 @@ const onAddReaction = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_REACTION, message);
   }
 
+  if (!targetUser) {
+    const message = `No targetUser specified for reaction.`;
+    return emitAppError(socket, e.NO_TARGET_USER, message);
+  }
+
   MessageDB
     .create({
       userId: socket.id,
       messageType: MESSAGE_TYPE.REACTION,
       content: reaction,
       roomRoomId: room.roomId,
+      targetUser: targetUser,
     })
     .then(() => {
       room.lastActive = new Date();
@@ -293,13 +299,15 @@ const onAddReaction = ensureRoomExists(socket => data => {
         roomId: room.roomId,
         userId: socket.id,
         reaction,
+        targetUser,
       });
       socket.emit(k.ADD_REACTION, {
         roomId: room.roomId,
         userId: socket.id,
         reaction,
+        targetUser,
         sentByMe: true,
-      })
+      });
     })
     .catch(e => console.error(e));
 });

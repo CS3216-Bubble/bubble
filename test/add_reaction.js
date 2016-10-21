@@ -62,19 +62,30 @@ describe('API', function() {
       });
     });
 
+    it('should return error when targetUser is not specified', function(done) {
+      clientShouldReceiveAppError(client, e.NO_TARGET_USER, done);
+      client.emit(k.ADD_REACTION, {
+        roomId,
+        reaction: REACTION_TYPE.THANK,
+        /* targetUser not specified */
+      });
+    });
+
     it('should emit add_reaction event to all users in a room', function(done) {
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {
         client2.emit(k.ADD_REACTION, {
           roomId,
           reaction: REACTION_TYPE.THANK,
+          targetUser: client.id,
         });
       });
       client.on(k.ADD_REACTION, data => {
-        data.should.have.keys('userId', 'roomId', 'reaction');
+        data.should.have.keys('userId', 'roomId', 'reaction', 'targetUser');
         data.userId.should.equal(client2.id);
         data.roomId.should.equal(roomId);
         data.reaction.should.equal(REACTION_TYPE.THANK);
+        data.targetUser.should.equal(client.id);
         done();
       });
     });
@@ -85,11 +96,13 @@ describe('API', function() {
         client2.emit(k.ADD_REACTION, {
           roomId,
           reaction: REACTION_TYPE.THANK,
+          targetUser: client.id,
         });
       });
       client2.on(k.ADD_REACTION, data => {
-        data.should.have.keys('userId', 'roomId', 'reaction');
+        data.should.have.keys('userId', 'roomId', 'reaction', 'targetUser');
         data.userId.should.equal(client2.id);
+        data.targetUser.should.equal(client.id);
         done();
       });
     });
@@ -100,6 +113,7 @@ describe('API', function() {
         client2.emit(k.ADD_REACTION, {
           roomId,
           reaction: REACTION_TYPE.THANK,
+          targetUser: client.id,
         });
       });
       clientShouldNotReceiveEvent(client3, k.ADD_REACTION);
