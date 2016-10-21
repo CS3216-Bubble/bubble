@@ -37,7 +37,7 @@ describe('API', function() {
 
   describe('disconnect', function() {
     it('should emit EXIT_ROOM to other users in room', function(done) {
-      client.on(k.EXIT_ROOM, data => {
+      client.on(k.EXIT_ROOM, () => {
         done();
       });
 
@@ -51,7 +51,7 @@ describe('API', function() {
     });
 
     it('should emit update numUsers in room', function(done) {
-      client.on(k.EXIT_ROOM, data => {
+      client.on(k.EXIT_ROOM, () => {
         client.emit(k.VIEW_ROOM, { roomId });
         done();
       });
@@ -60,7 +60,7 @@ describe('API', function() {
         data.numUsers.should.equal(1);
       });
 
-      client.on(k.JOIN_ROOM, data => {
+      client.on(k.JOIN_ROOM, () => {
         client2.disconnect();
       });
 

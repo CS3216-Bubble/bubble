@@ -45,11 +45,11 @@
     typing.text(`${msg.userId} is typing`);
   });
 
-  socket.on('stop_typing', function(msg) {
+  socket.on('stop_typing', function() {
     typing.text('');
   });
 
-  socket.on('counsellor_online', function(data) {
+  socket.on('counsellor_online', function() {
     $('#conline').text('Online as Counsellor');
   });
 

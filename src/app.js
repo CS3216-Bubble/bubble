@@ -138,7 +138,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
   room.numUsers += 1;
   return room
     .save()
-    .then(msgs => {
+    .then(() => {
       return socket.join(room.roomId, () => {
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
           roomId: room.roomId,
@@ -241,7 +241,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
       room.lastActive = new Date();
       return room.save();
     })
-    .then(r => {
+    .then(() => {
       return socket.to(room.roomId).emit(k.ADD_MESSAGE, {
         roomId: room.roomId,
         userId: socket.id,
@@ -286,7 +286,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
     .catch(e => console.error(e));
 });
 
-const onListRooms = socket => data => {
+const onListRooms = socket => () => {
   RoomDB
     .findAll({
       include: [MessageDB],
@@ -302,11 +302,11 @@ const onListRooms = socket => data => {
     });
 };
 
-const onDisconnect = socket => data => {
+const onDisconnect = socket => () => {
   delete SOCKETS[socket.id];
 };
 
-const onDisconnecting = socket => data => {
+const onDisconnecting = socket => () => {
   return Promise.all(Object.keys(socket.rooms).map(rid => {
     if (rid === socket.id) {
       return null;
@@ -353,7 +353,7 @@ const onSetUserName = socket => data => {
     });
 };
 
-const onFindCounsellor = socket => data => {
+const onFindCounsellor = socket => () => {
   const counsellorsAvailable = Object.keys(SOCKETS).filter(sid => {
     return SOCKETS[sid].counsellor &&
       SOCKETS[sid].counsellor.userType === USER_TYPE.COUNSELLOR;

@@ -52,7 +52,7 @@ describe('API', function() {
       // when the counsellor is online, client finds a counseller
       counsellor.on(k.COUNSELLOR_ONLINE, () => client.emit(k.FIND_COUNSELLOR));
 
-      client.on(k.FIND_COUNSELLOR, data => {
+      client.on(k.FIND_COUNSELLOR, () => {
         counsellor.emit(k.LIST_ISSUES, {
           counsellorId
         });

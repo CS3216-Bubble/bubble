@@ -5,5 +5,6 @@ module.exports = {
     "comma-dangle": 0,
     "object-curly-spacing": 0,
     "max-len": [2, 100],
+    'no-unused-vars': ['error', {varsIgnorePattern: '^_$'}],
   },
 };

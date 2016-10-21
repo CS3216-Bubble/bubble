@@ -5,13 +5,13 @@ import { afterEach, beforeEach } from 'mocha';
 beforeEach(function(done) {
   database
     .sync()
-    .then(_ => database.truncate())
-    .then(_ => done());
+    .then(() => database.truncate())
+    .then(() => done());
 });
 
 afterEach(function(done) {
   database
     .sync()
-    .then(_ => database.truncate())
-    .then(_ => done());
+    .then(() => database.truncate())
+    .then(() => done());
 });
