@@ -41,8 +41,8 @@ describe('API', function() {
     it('should return room information', function(done) {
       client.on(k.CREATE_ROOM, function(room) {
         room.should.have.keys(...ROOM_KEYS);
-        room.createdBy.should.equal(client.id)
-        room.isOpen.should.equal(true)
+        room.createdBy.should.equal(client.id);
+        room.isOpen.should.equal(true);
         done();
       });
       createRoom(client);
