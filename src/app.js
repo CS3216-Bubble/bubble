@@ -113,6 +113,7 @@ const onCreateRoom = socket => data => {
     categories: JSON.stringify(categories),
     lastActive: new Date(),
     numUsers: 1,
+    createdBy: socket.id,
   })
     .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
@@ -419,6 +420,7 @@ const onFindCounsellor = socket => () => {
           roomDescription: '',
           categories: '[]',
           lastActive: new Date(),
+          createdBy: socket.id,
         });
       })
       .then(room => {

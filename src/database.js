@@ -35,6 +35,8 @@ const RoomDB = database.define('room', {
   // socketIds: Sequelize.STRING,
   lastActive: Sequelize.DATE,
   numUsers: Sequelize.INTEGER,
+  createdBy: { type: Sequelize.STRING, allowNull: false }, // socket id
+  isOpen: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true },
 });
 
 const MessageDB = database.define('message', {
