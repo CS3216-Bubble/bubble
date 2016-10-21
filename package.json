@@ -32,11 +32,11 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon src/index.js --exec babel-node",
+    "start": "NODE_ENV=dev nodemon src/index.js --exec babel-node",
     "build": "NODE_ENV=prod babel src -d dist && cp src/index.html dist/index.html&& cp prod.env dist/prod.env",
     "serve": "NODE_ENV=prod node dist/index.js",
     "mocha": "NODE_ENV=test mocha --compilers js:babel-register --bail --check-leaks test/",
-    "test": "npm run mocha && npm run lint && npm run flow",
+    "test": "NODE_ENV=test npm run mocha && npm run lint && npm run flow",
     "mochaw": "NODE_ENV=test mocha --compilers js:babel-register --watch --bail --check-leaks test/",
     "lint": "eslint --ignore-path .gitignore .",
     "lint-fix": "eslint --fix --ignore-path .gitignore .",
