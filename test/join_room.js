@@ -117,7 +117,7 @@ describe('API', function() {
         }
       });
 
-      client.on(k.EXIT_ROOM, (data) => {
+      client.on(k.EXIT_ROOM, data => {
         if (data.userId === client2.id) {
           client3.emit(k.JOIN_ROOM, { roomId });
         }

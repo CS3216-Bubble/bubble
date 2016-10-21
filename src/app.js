@@ -171,14 +171,14 @@ function filterMessagesLimitX(messages) {
   return messages.splice(0, 100);
 }
 
-function filterMessages24Hr(messages) {
-  return messages.filter(m => {
-    const now = new Date();
-    const yesterday = now - (24 * 60 * 60 * 1000);
-    const c = new Date(m.createdAt);
-    return c >= yesterday && c <= now;
-  });
-}
+// function filterMessages24Hr(messages) {
+//   return messages.filter(m => {
+//     const now = new Date();
+//     const yesterday = now - (24 * 60 * 60 * 1000);
+//     const c = new Date(m.createdAt);
+//     return c >= yesterday && c <= now;
+//   });
+// }
 
 const onExitRoom = ensureRoomExists(socket => data => {
   const room = data.room;
