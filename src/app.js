@@ -248,9 +248,15 @@ const onAddMessage = ensureRoomExists(socket => data => {
       return room.save();
     })
     .then(() => {
-      return socket.to(room.roomId).emit(k.ADD_MESSAGE, {
+      socket.to(room.roomId).emit(k.ADD_MESSAGE, {
         roomId: room.roomId,
         userId: socket.id,
+        message,
+      });
+      socket.emit(k.ADD_MESSAGE, {
+        roomId: room.roomId,
+        userId: socket.id,
+        sentByMe: true,
         message,
       });
     })

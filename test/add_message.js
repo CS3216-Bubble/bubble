@@ -87,6 +87,22 @@ describe('API', function() {
       });
     });
 
+    it('should emit add_message event to user who sent message', function(done) {
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, () => {
+        client2.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: 'Hello',
+        });
+      });
+      client2.on(k.ADD_MESSAGE, data => {
+        data.should.have.keys('userId', 'sentByMe');
+        data.userId.should.equal(client2.id);
+        data.sentByMe.should.equal(true);
+        done();
+      });
+    });
+
     it('should not send message to other rooms', function(done) {
       // make another room with just client2
       let room2Id;

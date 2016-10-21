@@ -257,6 +257,17 @@ Emits event `add_message` to all other users in room:
 }
 ```
 
+Emits event `add_message` to user who just sent the message
+
+```
+{
+    user: UserId,
+    roomId: RoomId,
+    message: MessageContent,
+    sentByMe: Boolean,
+}
+```
+
 
 ### add_reaction
 
