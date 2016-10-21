@@ -1,22 +1,10 @@
 import Sequelize from 'sequelize';
-import dotenv from 'dotenv';
 import process from 'process';
 
 import ISSUE_TYPE from './models/issue_type';
 import MESSAGE_TYPE from './models/message_type';
 import ROOM_TYPE from './models/room_type';
 import USER_TYPE from './models/user_type';
-
-switch (process.env.NODE_ENV) {
-  case 'prod':
-    dotenv.config({ path: './prod.env' });
-    break;
-  case 'development':
-  case 'test':
-  default:
-    dotenv.config({ path: './dev.env' });
-    break;
-}
 
 const database = new Sequelize(
   process.env.DB_NAME,
