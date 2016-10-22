@@ -126,6 +126,8 @@ const onCreateRoom = socket => data => {
   })
     .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
+      logger.info(
+        '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM })
     }))
     .catch(e => console.error(e));
 };
@@ -160,6 +162,9 @@ const onJoinRoom = ensureRoomExists(socket => data => {
           roomId: room.roomId,
           userId: socket.id,
         });
+
+        logger.info(
+          '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM })
 
         io.in(room.roomId).clients((err, clients) => {
           socket.emit(k.JOIN_ROOM, {
@@ -203,6 +208,8 @@ const onExitRoom = ensureRoomExists(socket => data => {
             userId: socket.id,
           });
           socket.emit(k.EXIT_ROOM);
+          logger.info(
+            '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM })
         });
       }
     );
@@ -274,7 +281,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
         message,
       });
     })
-    .catch(e => console.error(e));
+    .catch(e => logger.error(e));
 });
 
 const onAddReaction = ensureRoomExists(socket => data => {
