@@ -556,7 +556,8 @@ const onListIssues = socket => data => {
 //   socket.on(event, fn)
 
 // }
-io.on('connection', function(socket) {
+io.on(k.CONNECTION, function(socket) {
+  logger.info('%s connects', socket.id, { event: k.CONNECTION });
   SOCKETS[socket.id] = socket;
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));

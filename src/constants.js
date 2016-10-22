@@ -1,3 +1,4 @@
+export const CONNECTION = 'connection';
 export const APP_ERROR = 'bubble_error';
 export const CREATE_ROOM = 'create_room';
 export const JOIN_ROOM = 'join_room';
