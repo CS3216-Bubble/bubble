@@ -4,6 +4,8 @@ import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
+import ROOM_TYPE from '../src/models/room_type';
+import { createHotRoom } from './database_helpers';
 import {
   ROOM_KEYS,
   createRoom,
@@ -57,6 +59,23 @@ describe('API', function() {
         done();
       });
       setTimeout(() => createRoom(client2), 500);
+    });
+
+    it('should return list with HOT rooms first', function(done) {
+      createRoom(client);
+
+      client.once(k.CREATE_ROOM, () => {
+        createHotRoom(client.id)
+          .then(() => {
+            client.emit(k.LIST_ROOMS);
+          });
+      });
+
+      client.on(k.LIST_ROOMS, data => {
+        data.length.should.equal(3);
+        data[0].roomType.should.equal(ROOM_TYPE.HOT);
+        done();
+      });
     });
 
     it('should not return rooms that are private (counseller)');

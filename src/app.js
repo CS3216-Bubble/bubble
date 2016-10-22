@@ -333,6 +333,16 @@ const onAddReaction = ensureRoomExists(socket => data => {
     .catch(e => console.error(e));
 });
 
+const ROOM_TYPE_WEIGHT = {
+  [ROOM_TYPE.HOT]: 0,
+  [ROOM_TYPE.PUBLIC]: 1,
+};
+
+function compareRoom(a, b) {
+  return (ROOM_TYPE_WEIGHT[a.roomType] - ROOM_TYPE_WEIGHT[b.roomType]) ||
+    (a.lastActive - b.lastActive);
+}
+
 const onListRooms = socket => () => {
   RoomDB
     .findAll({
@@ -341,10 +351,11 @@ const onListRooms = socket => () => {
     .then(rooms => {
       return rooms
         .filter(r => r.numUsers >= 0)
+        .filter(r => r.roomType !== ROOM_TYPE.PRIVATE)
         .map(roomToJSON);
     })
     .then(rooms => {
-      rooms.sort((a, b) => a.lastActive - b.lastActive);
+      rooms.sort(compareRoom);
       return socket.emit(k.LIST_ROOMS, rooms);
     });
 };
