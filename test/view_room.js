@@ -52,6 +52,15 @@ describe('API', function() {
       client.emit(k.VIEW_ROOM, { roomId });
     });
 
+    it('should return messages limit to 100', function(done) {
+      client.on(k.VIEW_ROOM, data => {
+        data.should.have.keys('messages');
+        data.messages.length.should.be.below(100);
+        done();
+      });
+      client.emit(k.VIEW_ROOM, { roomId });
+    });
+
     it('should return categories as an array of categories', function(done) {
       client.on(k.VIEW_ROOM, data => {
         data.categories.should.have.length(1);

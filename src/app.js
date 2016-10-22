@@ -362,6 +362,7 @@ const onViewRoom = ensureRoomExists(socket => data => {
   io.in(data.room.roomId).clients((err, clients) => {
     socket.emit(k.VIEW_ROOM, {
       ...roomToJSON(data.room),
+      messages: filterMessagesLimitX(data.room.messages),
       participants: clients,
     });
   });
