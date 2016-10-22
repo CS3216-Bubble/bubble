@@ -350,6 +350,7 @@ const onListRooms = socket => () => {
 };
 
 const onDisconnect = socket => () => {
+  logger.info('%s disconnects', socket.id, { event: k.DISCONNECT });
   delete SOCKETS[socket.id];
 };
 
