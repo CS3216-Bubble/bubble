@@ -127,7 +127,7 @@ const onCreateRoom = socket => data => {
     .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
       logger.info(
-        '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM })
+        '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM });
     }))
     .catch(e => console.error(e));
 };
@@ -164,7 +164,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         });
 
         logger.info(
-          '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM })
+          '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM });
 
         io.in(room.roomId).clients((err, clients) => {
           socket.emit(k.JOIN_ROOM, {
@@ -208,7 +208,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
             userId: socket.id,
           });
           logger.info(
-            '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM })
+            '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM });
           return socket.emit(k.EXIT_ROOM);
         });
       }

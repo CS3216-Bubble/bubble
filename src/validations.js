@@ -1,6 +1,7 @@
 /**
  * Validate that something is a string
  * @param {any} str something to validate
+ * @return {bool} if str is a string
  */
 function validateString(str) {
   return (typeof str === 'string');
