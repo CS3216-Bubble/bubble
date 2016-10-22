@@ -199,17 +199,17 @@ const onExitRoom = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
   room.numUsers -= 1;
-  room.save()
+  return room.save()
     .then(
       () => {
-        socket.leave(room.roomId, () => {
+        return socket.leave(room.roomId, () => {
           socket.to(room.roomId).emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
           });
-          socket.emit(k.EXIT_ROOM);
           logger.info(
             '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM })
+          return socket.emit(k.EXIT_ROOM);
         });
       }
     );
