@@ -12,8 +12,8 @@ const database = new Sequelize(
   process.env.DB_PASS,
   {
     host: process.env.DB_HOST,
-    dialect: 'sqlite',
-    storage: './database.sqlite',
+    dialect: process.env.DB_DIALECT,
+    storage: process.env.DB_STORAGE,
     logging: () => {},
   });
 
