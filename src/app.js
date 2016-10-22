@@ -340,7 +340,7 @@ const onListRooms = socket => () => {
     })
     .then(rooms => {
       return rooms
-        .filter(r => r.numUsers > 0)
+        .filter(r => r.numUsers >= 0)
         .map(roomToJSON);
     })
     .then(rooms => {
