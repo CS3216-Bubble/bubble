@@ -1,8 +1,10 @@
 import should from 'should';
+import uuid from 'uuid';
 
 import * as k from '../src/constants';
 import * as e from '../src/error_code';
 
+const ROOM_NOT_FOUND = uuid.v4(); // hopefully this never collides...
 const INVALID_ROOM_ID = 'invalidroomid';
 const ROOM_KEYS = [
   'roomId', 'roomName', 'userLimit', 'roomDescription',
@@ -35,6 +37,12 @@ function clientShouldReceiveAppError(client, errorCode, done) {
   });
 }
 
+function errorInvalidRoomId(client, event, done) {
+  clientShouldReceiveAppError(client, e.INVALID_ROOM_ID, done);
+  clientShouldNotReceiveEvent(client, event);
+  client.emit(event, { roomId: INVALID_ROOM_ID });
+}
+
 /**
  * Verifies that a specific error is emitted when a roomId
  * specified in a request is invalid or cannot be found
@@ -46,7 +54,7 @@ function clientShouldReceiveAppError(client, errorCode, done) {
 function errorRoomIdNotFound(client, event, done) {
   clientShouldReceiveAppError(client, e.ROOM_ID_NOT_FOUND, done);
   clientShouldNotReceiveEvent(client, event);
-  client.emit(event, { roomId: INVALID_ROOM_ID });
+  client.emit(event, { roomId: ROOM_NOT_FOUND });
 }
 
 /**
@@ -108,6 +116,7 @@ export {
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
+  errorInvalidRoomId,
   errorRoomIdNotFound,
   errorWithoutRoomId,
   makeClient,

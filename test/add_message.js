@@ -10,6 +10,7 @@ import {
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
+  errorInvalidRoomId,
   errorRoomIdNotFound,
   errorWithoutRoomId,
   makeClient,
@@ -54,6 +55,9 @@ describe('API', function() {
 
     it('should return error when room id cannot be found',
       done => errorRoomIdNotFound(client, k.ADD_MESSAGE, done));
+
+    it('should return error when room id is invalid',
+      done => errorInvalidRoomId(client, k.ADD_MESSAGE, done));
 
     it('should return error when message is not specified', function(done) {
       clientShouldReceiveAppError(client, e.NO_MESSAGE, done);

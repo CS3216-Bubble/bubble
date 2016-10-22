@@ -14,6 +14,7 @@ import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
+import { validateRoomId } from './validations';
 import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 
 const app = express();
@@ -68,6 +69,11 @@ const ensureRoomExists = nextFn => socket => data => {
   if (!roomId) {
     const message = 'Room id not specified.';
     return emitAppError(socket, e.NO_ROOM_ID, message);
+  }
+
+  if (!validateRoomId(roomId)) {
+    const message = 'Invalid room id.';
+    return emitAppError(socket, e.INVALID_ROOM_ID, message);
   }
 
   RoomDB.findOne({
