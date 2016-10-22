@@ -12,3 +12,4 @@ export const NO_USER_TO_REPORT = 'NO_USER_TO_REPORT';
 export const ROOM_CLOSED = 'ROOM_CLOSED';
 export const NO_TARGET_USER = 'NO_TARGET_USER';
 export const INVALID_ROOM_ID = 'INVALID_ROOM_ID';
+export const INVALID_NEW_NAME = 'INVALID_NEW_NAME';

@@ -41,7 +41,13 @@ describe('API', function() {
   describe('set_user_name', function() {
     it('should return error when newName is not specified', function(done) {
       clientShouldReceiveAppError(client, e.NO_NAME, done);
-      client.emit(k.SET_USER_NAME, { /* roomName not specified */ });
+      client.emit(k.SET_USER_NAME, { /* newName not specified */ });
+    });
+
+    it('should return error when newName is invalid', function(done) {
+      const newName = {not: 'a string'};
+      clientShouldReceiveAppError(client, e.INVALID_NEW_NAME, done);
+      client.emit(k.SET_USER_NAME, { newName });
     });
 
     it('should emit set_user_name event to all users in room', function(done) {

@@ -14,7 +14,7 @@ import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
-import { validateRoomId } from './validations';
+import { validateRoomId, validateString } from './validations';
 import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 
 const app = express();
@@ -375,17 +375,23 @@ const onViewRoom = ensureRoomExists(socket => data => {
 });
 
 const onSetUserName = socket => data => {
-  // should emit name change to all rooms that user is in
   const { newName } = data;
+
   if (!newName) {
     const message = 'newName not specified.';
     return emitAppError(socket, e.NO_NAME, message);
   }
 
+  if (!validateString(newName)) {
+    const message = 'Invalid newName.';
+    return emitAppError(socket, e.INVALID_NEW_NAME, message);
+  }
+
   socket.userName = newName;
 
+  // emit name change to all rooms that user is in
   Object.keys(socket.rooms)
-    .filter(socketId => socketId !== socket.id)
+    .filter(socketId => socketId !== socket.id) // except the socket's own room
     .forEach(roomId => {
       socket.to(roomId).emit(k.SET_USER_NAME, {
         userId: socket.id,
