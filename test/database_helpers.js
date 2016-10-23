@@ -22,6 +22,27 @@ function createHotRoom(socketId) {
   });
 }
 
+/**
+ * Creates a closed room
+ * @param {string} socketId of the creator
+ * @return {object} promise of creating the room
+ */
+function createClosedRoom(socketId) {
+  return RoomDB.create({
+    roomId: uuid.v4(),
+    roomName: 'Room',
+    roomType: ROOM_TYPE.PUBLIC,
+    userLimit: 100,
+    roomDescription: 'description',
+    categories: '[]',
+    lastActive: new Date(),
+    numUsers: 0,
+    createdBy: socketId,
+    isOpen: false,
+  });
+}
+
 export {
   createHotRoom,
+  createClosedRoom,
 };

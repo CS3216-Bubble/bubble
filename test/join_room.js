@@ -4,6 +4,7 @@ import should from 'should'; // eslint-disable-line no-unused-vars
 
 import * as e from '../src/error_code';
 import * as k from '../src/constants';
+import { createClosedRoom } from './database_helpers';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
   ROOM_KEYS,
@@ -66,7 +67,10 @@ describe('API', function() {
       client.emit(k.EXIT_ROOM, { roomId });
       clientShouldReceiveAppError(client2, e.ROOM_CLOSED, done);
       client.on(k.EXIT_ROOM, () => {
-        client2.emit(k.JOIN_ROOM, { roomId });
+        createClosedRoom(client.id)
+          .then(room => {
+            client2.emit(k.JOIN_ROOM, { roomId: room.roomId });
+          });
       });
     });
 

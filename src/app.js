@@ -135,7 +135,7 @@ const onCreateRoom = socket => data => {
 const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
-  if (room.numUsers === 0) {
+  if (!room.isOpen) {
     const message = `Room ${room.roomId} is closed`;
     return emitAppError(socket, e.ROOM_CLOSED, message);
   }
