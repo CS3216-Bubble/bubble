@@ -209,7 +209,10 @@ const onExitRoom = ensureRoomExists(socket => data => {
           });
           logger.info(
             '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM });
-          return socket.emit(k.EXIT_ROOM);
+          return socket.emit(k.EXIT_ROOM, {
+            roomId: room.roomId,
+            userId: socket.id,
+          });
         });
       }
     );

@@ -6,7 +6,12 @@
   </head>
   <body>
     <div class="container">
-      <h2>Current room: <span id="currentRoom">No Room</span></h2>
+
+      <div class="form-group">
+        <label for="Current">Current room</label>
+        <input id="currentRoom" class="form-control" disabled value="No Room"></input>
+      </div>
+
       <form id="exitroom">
         <button type="submit" class="btn btn-warning">Exit room</button>
       </form>

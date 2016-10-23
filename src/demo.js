@@ -23,7 +23,7 @@
   socket.on('create_room', function(msg) {
     console.log(`room created ${msg.roomId}`);
     roomId = msg.roomId;
-    currentRoom.text(roomId);
+    currentRoom.val(roomId);
     exitRoom.show();
   });
 
@@ -35,10 +35,14 @@
   });
 
   socket.on('add_message', function(msg) {
-    console.log(`user ${msg.userId} said "${msg.message}"`);
-    msgs.append(
-      `<li>${msg.userId}: "${msg.message}"</li>`
-    );
+    if (socket.id == msg.userId) {
+      // same user, do nothing
+    } else {
+      console.log(`user ${msg.userId} said "${msg.content}"`);
+      msgs.append(
+        `<li>${msg.userId}: "${msg.content}"</li>`
+      );
+    }
   });
 
   socket.on('typing', function(msg) {
@@ -68,7 +72,7 @@
           `);
     }
 
-    currentRoom.text(data.roomId);
+    currentRoom.val(data.roomId);
   });
 
   socket.on('exit_room', function(data) {
@@ -93,7 +97,7 @@
     socket.emit('join_room', {
       roomId,
     });
-    currentRoom.text(roomId);
+    currentRoom.val(roomId);
     exitRoom.show();
     return false;
   });
@@ -109,7 +113,7 @@
   $('form#send').submit(function() {
     const message = msgInput.val();
     socket.emit('add_message', {
-      roomId: currentRoom.text(),
+      roomId: currentRoom.val(),
       message,
     });
     msgs.append(
@@ -135,11 +139,12 @@
 
   $('#exitroom').submit(function() {
     if (!roomId) {
-      return;
+      return false;
     }
     socket.emit('exit_room', {
       roomId
     });
+    currentRoom.val('');
     exitRoom.hide();
     return false;
   });
