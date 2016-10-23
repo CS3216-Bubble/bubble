@@ -7,6 +7,7 @@ import * as k from '../src/constants';
 import MESSAGE_TYPE from '../src/models/message_type';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
+  MESSAGE_KEYS,
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
@@ -84,9 +85,10 @@ describe('API', function() {
         });
       });
       client.on(k.ADD_MESSAGE, data => {
-        data.should.have.keys('userId', 'message');
+        data.should.have.keys(...MESSAGE_KEYS);
         data.userId.should.equal(client2.id);
-        data.message.should.equal('Hello');
+        data.roomRoomId.should.equal(roomId);
+        data.content.should.equal('Hello');
         done();
       });
     });
@@ -100,7 +102,7 @@ describe('API', function() {
         });
       });
       client2.on(k.ADD_MESSAGE, data => {
-        data.should.have.keys('userId', 'sentByMe');
+        data.should.have.keys(...MESSAGE_KEYS);
         data.userId.should.equal(client2.id);
         data.sentByMe.should.equal(true);
         done();

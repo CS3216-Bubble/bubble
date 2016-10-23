@@ -79,9 +79,9 @@ describe('API', function() {
         });
 
         counsellor.on(k.ADD_MESSAGE, data => {
-          data.should.have.keys('userId', 'message');
+          data.should.have.keys('userId', 'content');
           data.userId.should.equal(client.id);
-          data.message.should.equal('Hello');
+          data.content.should.equal('Hello');
           done();
         });
 

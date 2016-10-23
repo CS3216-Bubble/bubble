@@ -7,9 +7,28 @@ import * as e from '../src/error_code';
 const ROOM_NOT_FOUND = uuid.v4(); // hopefully this never collides...
 const INVALID_ROOM_ID = 'invalidroomid';
 const ROOM_KEYS = [
-  'roomId', 'roomName', 'userLimit', 'roomDescription',
-  'categories', 'numUsers', 'lastActive', 'createdBy',
+  'roomId',
+  'roomName',
+  'userLimit',
+  'roomDescription',
+  'categories',
+  'numUsers',
+  'lastActive',
+  'createdBy',
   'isOpen',
+];
+const MESSAGE_KEYS = [
+  'userId',
+  'roomRoomId',
+  'content',
+  'messageType',
+];
+const REACTION_KEYS = [
+  'userId',
+  'roomRoomId',
+  'content',
+  'messageType',
+  'targetUser',
 ];
 
 /**
@@ -112,6 +131,8 @@ function matchUuid4(str) {
 }
 
 export {
+  MESSAGE_KEYS,
+  REACTION_KEYS,
   ROOM_KEYS,
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,

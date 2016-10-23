@@ -7,6 +7,7 @@ import * as k from '../src/constants';
 import REACTION_TYPE from '../src/models/reaction_type';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import {
+  REACTION_KEYS,
   clientShouldNotReceiveEvent,
   clientShouldReceiveAppError,
   createRoom,
@@ -81,10 +82,10 @@ describe('API', function() {
         });
       });
       client.on(k.ADD_REACTION, data => {
-        data.should.have.keys('userId', 'roomId', 'reaction', 'targetUser');
+        data.should.have.keys(...REACTION_KEYS);
         data.userId.should.equal(client2.id);
-        data.roomId.should.equal(roomId);
-        data.reaction.should.equal(REACTION_TYPE.THANK);
+        data.roomRoomId.should.equal(roomId);
+        data.content.should.equal(REACTION_TYPE.THANK);
         data.targetUser.should.equal(client.id);
         done();
       });
@@ -100,7 +101,7 @@ describe('API', function() {
         });
       });
       client2.on(k.ADD_REACTION, data => {
-        data.should.have.keys('userId', 'roomId', 'reaction', 'targetUser');
+        data.should.have.keys(...REACTION_KEYS);
         data.userId.should.equal(client2.id);
         data.targetUser.should.equal(client.id);
         done();

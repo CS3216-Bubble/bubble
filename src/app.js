@@ -257,6 +257,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
+  let msg;
   return MessageDB
     .create({
       userId: socket.id,
@@ -264,22 +265,19 @@ const onAddMessage = ensureRoomExists(socket => data => {
       content: message,
       roomRoomId: room.roomId,
     })
-    .then(() => {
+    .then(m => {
+      msg = m;
       room.lastActive = new Date();
       return room.save();
     })
     .then(() => {
       socket.to(room.roomId).emit(k.ADD_MESSAGE, {
-        roomId: room.roomId,
-        userId: socket.id,
+        ...msg.toJSON(),
         sentByMe: false,
-        message,
       });
       socket.emit(k.ADD_MESSAGE, {
-        roomId: room.roomId,
-        userId: socket.id,
+        ...msg.toJSON(),
         sentByMe: true,
-        message,
       });
     })
     .catch(e => logger.error(e));
@@ -304,6 +302,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.NO_TARGET_USER, message);
   }
 
+  let msg;
   MessageDB
     .create({
       userId: socket.id,
@@ -312,22 +311,18 @@ const onAddReaction = ensureRoomExists(socket => data => {
       roomRoomId: room.roomId,
       targetUser: targetUser,
     })
-    .then(() => {
+    .then(m => {
+      msg = m;
       room.lastActive = new Date();
       return room.save();
     })
     .then(() => {
       socket.to(room.roomId).emit(k.ADD_REACTION, {
-        roomId: room.roomId,
-        userId: socket.id,
-        reaction,
-        targetUser,
+        ...msg.toJSON(),
+        sentByMe: true,
       });
       socket.emit(k.ADD_REACTION, {
-        roomId: room.roomId,
-        userId: socket.id,
-        reaction,
-        targetUser,
+        ...msg.toJSON(),
         sentByMe: true,
       });
     })
