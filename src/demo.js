@@ -28,14 +28,22 @@
   });
 
   socket.on('join_room', function(msg) {
-    console.log(`user ${msg.userId} joined this room`);
-    msgs.append(
-      `<li>${msg.userId} has joined the room</li>`
-    );
+    if (socket.id === msg.userId) {
+      msgs.append(
+        `<li>You have just joined this room.
+        There are ${msg.participants.length} people in this room.</li>`
+      );
+      // same user, do nothing
+    } else {
+      console.log(`user ${msg.userId} joined this room`);
+      msgs.append(
+        `<li>${msg.userId} has joined the room</li>`
+      );
+    }
   });
 
   socket.on('add_message', function(msg) {
-    if (socket.id == msg.userId) {
+    if (socket.id === msg.userId) {
       // same user, do nothing
     } else {
       console.log(`user ${msg.userId} said "${msg.content}"`);
