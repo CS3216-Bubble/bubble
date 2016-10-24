@@ -350,6 +350,24 @@ contains information about the counsellor and the private chat room created.
 }
 ```
 
+### claim_id
+
+When a socket emits this events, it is trying to claim an older socket id,
+i.e. rejoin the same rooms that the old socket id was in.
+This is useful on a flaky connection where a socket reconnects and is
+given a new socket id.
+
+```
+{
+    oldSocketId: UserId
+}
+```
+
+If claim is successful, a `claim_id` is emitted to the user too.
+Note: because the socket joins all the room it was in,
+the `join_room` event is emitted to the socket and all other
+users in the room as well (same semantics as joining a room).
+
 
 ## counsellor specific endpoints
 

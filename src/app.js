@@ -24,7 +24,10 @@ const io = socketio(server);
 app.use(raven.middleware.express.requestHandler(process.env.RAVEN_URL));
 app.use(raven.middleware.express.errorHandler(process.env.RAVEN_URL));
 
+// TODO cache rooms query
 const SOCKETS = {};
+// [id] -> [rooms];
+const SocketIdToRooms = {};
 
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
@@ -132,6 +135,8 @@ const onCreateRoom = socket => data => {
     .catch(e => console.error(e));
 };
 
+// TODO think of emitting any room changes to all connected clients
+// or clients can just call list_rooms again
 const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
@@ -365,6 +370,9 @@ const onDisconnect = socket => () => {
 };
 
 const onDisconnecting = socket => () => {
+  // save the rooms that socket.id was in for restore if reconnect
+  SocketIdToRooms[socket.id] = Object.keys(socket.rooms)
+    .filter(room => room !== socket.id);
   return Promise.all(Object.keys(socket.rooms).map(rid => {
     if (rid === socket.id) {
       return null;
@@ -567,9 +575,43 @@ const onListIssues = socket => data => {
 //   socket.on(event, fn)
 
 // }
+
+/*
+ * on connect
+ * check param.oldId
+ * if there is an oldId, this is a reconnect
+ * make socket.join all rooms that oldId was in
+ * need to store oldId to rooms somewhere
+ * and override if we reconnect
+ */
+
+function onClaimId(socket) {
+  function onClaimIdData(data) {
+    if (!data.oldSocketId) {
+      const message = 'oldSocketId must be provided.';
+      return emitAppError(socket, e.NO_OLD_SOCKET_ID, message);
+    }
+
+    const oldRooms = SocketIdToRooms[data.oldSocketId];
+
+    if (typeof oldRooms === 'undefined') {
+      const message = 'oldSocketId cannot be found.';
+      return emitAppError(socket, e.OLD_SOCKET_ID_NOT_FOUND, message);
+    }
+
+    oldRooms.forEach(roomId => {
+      onJoinRoom(socket)({ roomId });
+    });
+    socket.emit(k.CLAIM_ID, {
+      oldSocketId: data.oldSocketId
+    });
+  }
+  return onClaimIdData;
+}
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
   SOCKETS[socket.id] = socket;
+  socket.on(k.CLAIM_ID, onClaimId(socket));
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));

@@ -5,8 +5,10 @@ switch (process.env.NODE_ENV) {
     dotenv.config({ path: './prod.env' });
     break;
   case 'dev':
+    dotenv.config({ path: './dev.env' });
+    break;
   case 'test':
   default:
-    dotenv.config({ path: './dev.env' });
+    dotenv.config({ path: './test.env' });
     break;
 }
