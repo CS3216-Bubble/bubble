@@ -46,6 +46,7 @@
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
   },
   "engines": {
-    "node": "6.7.0"
+    "node": "6.7.0",
+    "npm": "3.10.7"
   }
 }
