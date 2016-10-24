@@ -38,28 +38,44 @@ describe('API', function() {
     done();
   });
 
-  describe('set_user_name', function() {
-    it('should return error when newName is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.NO_NAME, done);
-      client.emit(k.SET_USER_NAME, { /* newName not specified */ });
+  describe.only(k.CLAIM_ID, function() {
+    it('should return error when oldSocketId is not specified', function(done) {
+      clientShouldReceiveAppError(client, e.NO_OLD_SOCKET_ID, done);
+      client.emit(k.CLAIM_ID, { /* oldSocketId is not specified */ });
     });
 
-    it('should return error when newName is invalid', function(done) {
-      const newName = {not: 'a string'};
-      clientShouldReceiveAppError(client, e.INVALID_NEW_NAME, done);
-      client.emit(k.SET_USER_NAME, { newName });
+    it('should return error when oldSocketId is not found', function(done) {
+      clientShouldReceiveAppError(client, e.OLD_SOCKET_ID_NOT_FOUND, done);
+      client.emit(k.CLAIM_ID, { oldSocketId: '123' });
     });
 
-    it('should emit set_user_name event to all users in room', function(done) {
-      const newName = 'client 2 name';
+    it('should return error when claiming a socket that is online', function(done) {
+      clientShouldReceiveAppError(client, e.INVALID_OLD_SOCKET_ID, done);
+      client.emit(k.CLAIM_ID, { oldSocketId: client.id });
+    });
+
+    it('should make the new socket join the room old socket was in', function(done) {
+      const oldSocketId = client.id;
+      const newClient = makeClient(io);
+
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {
-        client2.emit(k.SET_USER_NAME, { newName });
+        client.disconnect();
       });
-      client.on(k.SET_USER_NAME, data => {
-        data.should.have.keys('userId', 'newName');
+
+      client2.on(k.EXIT_ROOM, data => {
+        if (data.userId === oldSocketId) {
+          newClient.emit(k.CLAIM_ID, { oldSocketId });
+        }
+      });
+
+      newClient.on(k.CLAIM_ID, () => {
+        client2.emit(k.ADD_MESSAGE, { roomId, message: 'hi' });
+      });
+
+      newClient.on(k.ADD_MESSAGE, data => {
         data.userId.should.equal(client2.id);
-        data.newName.should.equal(newName);
+        newClient.disconnect();
         done();
       });
     });

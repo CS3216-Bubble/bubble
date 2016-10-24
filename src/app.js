@@ -616,7 +616,7 @@ function onClaimId(socket) {
 
     if (existingSocket) {
       const message = 'Invalid oldSocketId';
-      return emitAppError(socket, e.invalid_old_socket_id, message);
+      return emitAppError(socket, e.INVALID_OLD_SOCKET_ID, message);
     }
 
     const oldRooms = SocketIdToRooms[data.oldSocketId];
