@@ -460,8 +460,8 @@ User `report_user` without specifying a `targetUser`
 
 ### NO_OLD_SOCKET_ID
 
-When user `claimId`, did not specify `oldSocketId`.
+When user `claim_id`, did not specify `oldSocketId`.
 
 ### OLD_SOCKET_ID_NOT_FOUND
 
-When user `claimId`, specified `oldSocketId` cannot be found.
+When user `claim_id`, specified `oldSocketId` cannot be found.
