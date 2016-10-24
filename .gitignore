@@ -1,5 +1,7 @@
 # Created by https://www.gitignore.io/api/node,vim,sublimetext,macos,windows
 
+*.env
+
 ### Node ###
 # Logs
 logs
