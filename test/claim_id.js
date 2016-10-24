@@ -38,7 +38,7 @@ describe('API', function() {
     done();
   });
 
-  describe.only(k.CLAIM_ID, function() {
+  describe(k.CLAIM_ID, function() {
     it('should return error when oldSocketId is not specified', function(done) {
       clientShouldReceiveAppError(client, e.NO_OLD_SOCKET_ID, done);
       client.emit(k.CLAIM_ID, { /* oldSocketId is not specified */ });
