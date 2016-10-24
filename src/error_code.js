@@ -14,4 +14,5 @@ export const NO_TARGET_USER = 'no_target_user';
 export const INVALID_ROOM_ID = 'invalid_room_id';
 export const INVALID_NEW_NAME = 'invalid_new_name';
 export const NO_OLD_SOCKET_ID = 'no_old_socket_id';
+export const INVALID_OLD_SOCKET_ID = 'invalid_old_socket_id';
 export const OLD_SOCKET_ID_NOT_FOUND = 'old_socket_id_not_found';

@@ -56,6 +56,14 @@ function clientShouldReceiveAppError(client, errorCode, done) {
   });
 }
 
+/**
+ * Verifies that a specific error is emitted when an
+ * invalid roomId is sent in a request that needs a roomId.
+ *
+ * @param {object} client socket.io client
+ * @param {string} event event to emit that will trigger error
+ * @param {function} done mocha done callback
+ */
 function errorInvalidRoomId(client, event, done) {
   clientShouldReceiveAppError(client, e.INVALID_ROOM_ID, done);
   clientShouldNotReceiveEvent(client, event);

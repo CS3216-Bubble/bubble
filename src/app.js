@@ -171,7 +171,8 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         logger.info(
           '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM });
 
-        io.in(room.roomId).clients((err, clients) => {
+        io.in(room.roomId).clients((error, clients) => {
+          if (error) throw error;
           socket.emit(k.JOIN_ROOM, {
             ...roomToJSON(room),
             userId: socket.id,
@@ -183,6 +184,13 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     });
 });
 
+/**
+ * Limits messages to first 100.
+ * Messages should have been sorted by createdAt DESC first.
+ *
+ * @param {array} messages an array of messages
+ * @return {array} max 100 messages
+ */
 function filterMessagesLimitX(messages) {
   return messages.splice(0, 100);
 }
@@ -337,11 +345,21 @@ const onAddReaction = ensureRoomExists(socket => data => {
     .catch(e => console.error(e));
 });
 
+/**
+ * Weight of each time of room, used for sorting.
+ * A HOT room should be earlier than a PUBLIC room in sorted order.
+ */
 const ROOM_TYPE_WEIGHT = {
   [ROOM_TYPE.HOT]: 0,
   [ROOM_TYPE.PUBLIC]: 1,
 };
 
+/**
+ * Compares two rooms using it's type, followed by lastActive.
+ * @param {object} a a room
+ * @param {object} b another room
+ * @return {number} -1, 0, or 1
+ */
 function compareRoom(a, b) {
   return (ROOM_TYPE_WEIGHT[a.roomType] - ROOM_TYPE_WEIGHT[b.roomType]) ||
     (a.lastActive - b.lastActive);
@@ -391,7 +409,8 @@ const onDisconnecting = socket => () => {
 };
 
 const onViewRoom = ensureRoomExists(socket => data => {
-  io.in(data.room.roomId).clients((err, clients) => {
+  io.in(data.room.roomId).clients((error, clients) => {
+    if (error) throw error;
     socket.emit(k.VIEW_ROOM, {
       ...roomToJSON(data.room),
       messages: filterMessagesLimitX(data.room.messages),
@@ -576,20 +595,28 @@ const onListIssues = socket => data => {
 
 // }
 
-/*
- * on connect
- * check param.oldId
- * if there is an oldId, this is a reconnect
- * make socket.join all rooms that oldId was in
- * need to store oldId to rooms somewhere
- * and override if we reconnect
+/**
+ * Called when socket wants to claim an old socket id.
+ * If the old socket id can be found, we associate this new socket
+ * with the old socket by making this socket join the rooms that
+ * the old socket was in before being disconnected.
+ *
+ * @param {object} socket socket that sent the event
+ * @return {function} callback
  */
-
 function onClaimId(socket) {
   function onClaimIdData(data) {
     if (!data.oldSocketId) {
       const message = 'oldSocketId must be provided.';
       return emitAppError(socket, e.NO_OLD_SOCKET_ID, message);
+    }
+
+    // if a socket tries to claim to be a socket that is currently connected
+    const existingSocket = SOCKETS[data.oldSocketId];
+
+    if (existingSocket) {
+      const message = 'Invalid oldSocketId';
+      return emitAppError(socket, e.invalid_old_socket_id, message);
     }
 
     const oldRooms = SocketIdToRooms[data.oldSocketId];
