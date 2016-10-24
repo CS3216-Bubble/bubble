@@ -1,4 +1,5 @@
 Bubble
+![Bubble build status](https://travis-ci.org/CS3216-Bubble/bubble.svg?branch=master)
 
 # Getting started
 
@@ -444,3 +445,23 @@ User `report_user` but no `userToReport` is specified
 ### ROOM_CLOSED
 
 User `join_room` a room that is closed/empty.
+
+### NO_TARGET_USER
+
+User `report_user` without specifying a `targetUser`
+
+### INVALID_ROOM_ID
+
+`roomId` specified for events is not valid, not a UUID v4.
+
+### INVALID_NEW_NAME
+
+`newName` specified for `set_user_name` is not valid, not a string.
+
+### NO_OLD_SOCKET_ID
+
+When user `claimId`, did not specify `oldSocketId`.
+
+### OLD_SOCKET_ID_NOT_FOUND
+
+When user `claimId`, specified `oldSocketId` cannot be found.
