@@ -166,6 +166,8 @@ Notes: see all available rooms, paginate? how to sort?
 {
     user: UserId,
     roomId: RoomId,
+    messages: [Message],
+    participants: [UserId,]
 }
 ```
 
