@@ -17,3 +17,4 @@ export const NO_OLD_SOCKET_ID = 'no_old_socket_id';
 export const INVALID_OLD_SOCKET_ID = 'invalid_old_socket_id';
 export const OLD_SOCKET_ID_NOT_FOUND = 'old_socket_id_not_found';
 export const INVALID_USER_LIMIT = 'invalid_user_limit';
+export const INVALID_MESSAGE = 'invalid_message';

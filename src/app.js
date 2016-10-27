@@ -14,7 +14,12 @@ import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
-import { validateRoomId, validateString, validateUserLimit } from './validations';
+import {
+  validateMessage,
+  validateRoomId,
+  validateString,
+  validateUserLimit,
+} from './validations';
 import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 
 const app = express();
@@ -271,6 +276,11 @@ const onAddMessage = ensureRoomExists(socket => data => {
   if (!message) {
     const message = `No message specified.`;
     return emitAppError(socket, e.NO_MESSAGE, message);
+  }
+
+  if (!validateMessage(message)) {
+    const message = `Message length exceeds limit.`;
+    return emitAppError(socket, e.INVALID_MESSAGE, message);
   }
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {

@@ -9,13 +9,13 @@ function validateNum(num) {
 
 /**
  * Validate that a number is in range [lower, upper] inclusive
- * @param {any} num something to validate
+ * @param {number} num something to validate
  * @param {number} lower the lower bound
  * @param {number} upper the upper bound
  * @return {bool} if num is in the range [lower, upper] inclusive
  */
 function validateNumberInRange(num, lower, upper) {
-  return validateNum(num) && num >= lower && num <= upper;
+  return num >= lower && num <= upper;
 }
 
 /**
@@ -45,6 +45,25 @@ function validateRoomId(roomId) {
   return validateString(roomId) && validateUuid(roomId);
 }
 
+/**
+ * Validate a message
+ * @param {string} message a message to validate
+ * @param {number} limit limit for string length
+ * @return {bool} if message is a valid, is a string and uuid4
+ * */
+function validateStringLength(message, limit) {
+  return message.length <= limit;
+}
+
+/**
+ * Validate a message
+ * @param {any} message a message to validate
+ * @return {bool} if message is a valid, is a string and uuid4
+ * */
+function validateMessage(message) {
+  return validateString(message) && validateStringLength(message, 3000);
+}
+
 const uuid4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
@@ -57,6 +76,7 @@ function validateUuid(str) {
 }
 
 export {
+  validateMessage,
   validateRoomId,
   validateString,
   validateUuid,

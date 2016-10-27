@@ -68,6 +68,17 @@ describe('API', function() {
       });
     });
 
+    it('should return error when message is too long', function(done) {
+      clientShouldReceiveAppError(client, e.INVALID_MESSAGE, done);
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client.on(k.JOIN_ROOM, () => {
+        client.emit(k.ADD_MESSAGE, {
+          roomId,
+          message: Array(10000).join('a'),
+        });
+      });
+    });
+
     it('should return error when user is not in room', function(done) {
       clientShouldReceiveAppError(client2, e.USER_NOT_IN_ROOM, done);
       client2.emit(k.ADD_MESSAGE, {
