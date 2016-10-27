@@ -42,7 +42,28 @@ function createClosedRoom(socketId) {
   });
 }
 
+/**
+ * Creates a inactive room, currenctly defined as > 3 days
+ * @param {string} socketId of the creator
+ * @return {object} promise of creating the room
+ */
+function createInactiveRoom(socketId) {
+  return RoomDB.create({
+    roomId: uuid.v4(),
+    roomName: 'Room',
+    roomType: ROOM_TYPE.PUBLIC,
+    userLimit: 100,
+    roomDescription: 'description',
+    categories: '[]',
+    lastActive: new Date() - 4 * 24 * 60 * 60 * 1000,
+    numUsers: 0,
+    createdBy: socketId,
+    isOpen: true,
+  });
+}
+
 export {
-  createHotRoom,
   createClosedRoom,
+  createHotRoom,
+  createInactiveRoom,
 };

@@ -5,7 +5,7 @@ import should from 'should'; // eslint-disable-line no-unused-vars
 import * as k from '../src/constants';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
 import ROOM_TYPE from '../src/models/room_type';
-import { createHotRoom } from './database_helpers';
+import { createHotRoom, createInactiveRoom } from './database_helpers';
 import {
   ROOM_KEYS,
   createRoom,
@@ -58,7 +58,7 @@ describe('API', function() {
         data[0].lastActive.should.be.below(data[1].lastActive);
         done();
       });
-      setTimeout(() => createRoom(client2), 500);
+      createRoom(client2);
     });
 
     it('should return list with HOT rooms first', function(done) {
@@ -74,6 +74,19 @@ describe('API', function() {
       client.on(k.LIST_ROOMS, data => {
         data.length.should.equal(3);
         data[0].roomType.should.equal(ROOM_TYPE.HOT);
+        done();
+      });
+    });
+
+    it('should not return inactive rooms (lastActive > 3 days)', function(done) {
+      // first create another room that has a newer lastActive
+      createInactiveRoom(client2.id)
+        .then(() => {
+          client.emit(k.LIST_ROOMS);
+        });
+      client.on(k.LIST_ROOMS, data => {
+        data.should.be.Array();
+        data.length.should.equal(1);
         done();
       });
     });

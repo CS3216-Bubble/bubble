@@ -365,9 +365,15 @@ function compareRoom(a, b) {
     (a.lastActive - b.lastActive);
 }
 
+const STALE_TIME = 3 * 24 * 60 * 60 * 1000;
 const onListRooms = socket => () => {
   RoomDB
     .findAll({
+      where: {
+        lastActive: {
+          $gt: new Date(new Date() - STALE_TIME)
+        },
+      },
       include: [MessageDB],
     })
     .then(rooms => {
