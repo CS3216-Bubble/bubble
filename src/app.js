@@ -14,7 +14,7 @@ import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
-import { validateRoomId, validateString } from './validations';
+import { validateRoomId, validateString, validateUserLimit } from './validations';
 import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 
 const app = express();
@@ -113,6 +113,11 @@ const onCreateRoom = socket => data => {
   if (!roomName) {
     const message = 'Room name is not specified.';
     return emitAppError(socket, e.NO_ROOM_NAME, message);
+  }
+
+  if (!validateUserLimit(userLimit)) {
+    const message = 'User limit must be between 2 and 100.';
+    return emitAppError(socket, e.INVALID_USER_LIMIT, message);
   }
 
   const roomId = uuid.v4();

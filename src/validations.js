@@ -1,4 +1,33 @@
 /**
+ * Validate that something is a number
+ * @param {any} num something to validate
+ * @return {bool} if num is a number
+ */
+function validateNum(num) {
+  return (typeof num === 'number');
+}
+
+/**
+ * Validate that a number is in range [lower, upper] inclusive
+ * @param {any} num something to validate
+ * @param {number} lower the lower bound
+ * @param {number} upper the upper bound
+ * @return {bool} if num is in the range [lower, upper] inclusive
+ */
+function validateNumberInRange(num, lower, upper) {
+  return validateNum(num) && num >= lower && num <= upper;
+}
+
+/**
+ * Validate a user limit, must be between 2 and 100
+ * @param {number} num something to validate
+ * @return {bool} if num is between 2 and 100 inclusive
+ */
+function validateUserLimit(num) {
+  return validateNum(num) && validateNumberInRange(num, 2, 100);
+}
+
+/**
  * Validate that something is a string
  * @param {any} str something to validate
  * @return {bool} if str is a string
@@ -31,4 +60,5 @@ export {
   validateRoomId,
   validateString,
   validateUuid,
+  validateUserLimit,
 };
