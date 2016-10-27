@@ -36,7 +36,7 @@ describe('API', function() {
       client.emit(k.CREATE_ROOM, { /* roomName not specified */ });
     });
 
-    describe.only('should return error when user limit invalid', function() {
+    describe('should return error when user limit invalid', function() {
       it('user limit is less than lower bound', function(done) {
         clientShouldReceiveAppError(client, e.INVALID_USER_LIMIT, done);
         clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
