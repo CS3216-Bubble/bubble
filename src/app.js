@@ -120,7 +120,8 @@ const onCreateRoom = socket => data => {
     return emitAppError(socket, e.NO_ROOM_NAME, message);
   }
 
-  if (!validateUserLimit(userLimit)) {
+  let parsedUserLimit = parseInt(userLimit, 10);
+  if (!validateUserLimit(parsedUserLimit)) {
     const message = 'User limit must be between 2 and 100.';
     return emitAppError(socket, e.INVALID_USER_LIMIT, message);
   }
@@ -130,7 +131,7 @@ const onCreateRoom = socket => data => {
     roomId,
     roomName: roomName,
     roomType: ROOM_TYPE.PUBLIC,
-    userLimit: userLimit,
+    userLimit: parsedUserLimit,
     roomDescription: roomDescription,
     categories: JSON.stringify(categories),
     lastActive: new Date(),

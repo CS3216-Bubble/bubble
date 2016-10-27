@@ -4,7 +4,7 @@
  * @return {bool} if num is a number
  */
 function validateNum(num) {
-  return (typeof num === 'number');
+  return (typeof num === 'number' && !isNaN(num) && isFinite(num));
 }
 
 /**
