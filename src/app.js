@@ -152,8 +152,6 @@ const onCreateRoom = socket => data => {
     .catch(e => console.error(e));
 };
 
-// TODO think of emitting any room changes to all connected clients
-// or clients can just call list_rooms again
 const onJoinRoom = ensureRoomExists(socket => data => {
   const room = data.room;
 
@@ -499,7 +497,6 @@ const onFindCounsellor = socket => () => {
       emitAppError(socket, e.COUNSELLOR_UNAVAILABLE, message);
     });
   } else {
-    // TODO: some sort of selection for counsellor, right now just use first
     const cSoc = SOCKETS[counsellorsAvailable[0]];
     const roomId = uuid.v4();
 
@@ -563,8 +560,6 @@ const onCounsellorOnline = socket => data => {
       socket.counsellor = c;
       socket.emit(k.COUNSELLOR_ONLINE, {});
     });
-  // // TODO errors when data not provided
-  // TODO notifications, chat list for counsellor
 };
 
 const onReportUser = ensureRoomExists(socket => data => {
