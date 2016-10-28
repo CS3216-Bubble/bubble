@@ -1,3 +1,5 @@
+import { VALID_CATEGORIES } from './constants';
+
 /**
  * Validate that something is a number
  * @param {any} num something to validate
@@ -75,7 +77,27 @@ function validateUuid(str) {
   return str && uuid4Regex.test(str);
 }
 
+/**
+ * Tests that a category is valid
+ * @param {any} cat category to check
+ * @return {bool} if category is valid
+ */
+function validCategory(cat) {
+  return validateString(cat) && VALID_CATEGORIES.includes(cat);
+}
+
+/**
+ * Tests that the categories are valid
+ * @param {any} cats categories to check
+ * @return {bool} if categories are valid
+ */
+function validateCategories(cats) {
+  return Array.isArray(cats) &&
+    cats.map(validCategory).reduce((x, y) => x && y);
+}
+
 export {
+  validateCategories,
   validateMessage,
   validateRoomId,
   validateString,

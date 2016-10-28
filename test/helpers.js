@@ -108,7 +108,7 @@ function createRoom(client, opts = {}) {
     roomName: 'this is my room',
     roomDescription: 'my room description',
     userLimit: 2, // optional, defaults to 7
-    categories: ['cat1'],
+    categories: ['Funny'],
   };
   client.emit(k.CREATE_ROOM, {
     ...defaults,

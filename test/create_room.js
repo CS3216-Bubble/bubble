@@ -36,6 +36,36 @@ describe('API', function() {
       client.emit(k.CREATE_ROOM, { /* roomName not specified */ });
     });
 
+    describe('should return error when categories are invalid', function() {
+      beforeEach(function() {
+        clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
+      });
+
+      it('categories not an array', function(done) {
+        clientShouldReceiveAppError(client, e.INVALID_CATEGORIES, done);
+        client.emit(k.CREATE_ROOM, {
+          roomName: 'Room Name',
+          categories: {category: 'Funny'},
+        });
+      });
+
+      it('category not a string', function(done) {
+        clientShouldReceiveAppError(client, e.INVALID_CATEGORIES, done);
+        client.emit(k.CREATE_ROOM, {
+          roomName: 'Room Name',
+          categories: [{category: 'Funny'}],
+        });
+      });
+
+      it('not a category we support', function(done) {
+        clientShouldReceiveAppError(client, e.INVALID_CATEGORIES, done);
+        client.emit(k.CREATE_ROOM, {
+          roomName: 'Room Name',
+          categories: ['INVALID'],
+        });
+      });
+    });
+
     describe('should return error when user limit invalid', function() {
       it('user limit is less than lower bound', function(done) {
         clientShouldReceiveAppError(client, e.INVALID_USER_LIMIT, done);

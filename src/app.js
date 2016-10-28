@@ -15,6 +15,7 @@ import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
 import logger from './logging';
 import {
+  validateCategories,
   validateMessage,
   validateRoomId,
   validateString,
@@ -124,6 +125,11 @@ const onCreateRoom = socket => data => {
   if (!validateUserLimit(parsedUserLimit)) {
     const message = 'User limit must be between 2 and 100.';
     return emitAppError(socket, e.INVALID_USER_LIMIT, message);
+  }
+
+  if (!validateCategories(categories)) {
+    const message = `Invalid categories, should be one of ${k.valid_categories_for_display}.`;
+    return emitAppError(socket, e.INVALID_CATEGORIES, message);
   }
 
   const roomId = uuid.v4();
