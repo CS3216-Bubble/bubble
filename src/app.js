@@ -665,6 +665,16 @@ function onClaimId(socket) {
   }
   return onClaimIdData;
 }
+
+function onMyRooms(socket) {
+  function onMyRoomsData() {
+    socket.emit(
+      k.MY_ROOMS,
+      Object.keys(socket.rooms).filter(s => s !== socket.id));
+  }
+  return onMyRoomsData;
+}
+
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
   SOCKETS[socket.id] = socket;
@@ -685,6 +695,7 @@ io.on(k.CONNECTION, function(socket) {
   socket.on(k.COUNSELLOR_ONLINE, onCounsellorOnline(socket));
   socket.on(k.REPORT_USER, onReportUser(socket));
   socket.on(k.LIST_ISSUES, onListIssues(socket));
+  socket.on(k.MY_ROOMS, onMyRooms(socket));
 });
 
 export {

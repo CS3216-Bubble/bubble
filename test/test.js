@@ -38,6 +38,16 @@ describe('API', function() {
     done();
   });
 
+  describe('my_rooms', function() {
+    it('should return rooms I am in except my socket id', function(done) {
+      client.emit(k.MY_ROOMS);
+      client.on(k.MY_ROOMS, data => {
+        data.should.have.length(1);
+        done();
+      });
+    });
+  });
+
   describe('set_user_name', function() {
     it('should return error when newName is not specified', function(done) {
       clientShouldReceiveAppError(client, e.NO_NAME, done);

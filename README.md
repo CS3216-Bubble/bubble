@@ -371,6 +371,16 @@ Note: because the socket joins all the room it was in,
 the `join_room` event is emitted to the socket and all other
 users in the room as well (same semantics as joining a room).
 
+### my_rooms
+A client emits this event to get the server's view of what rooms this
+client is connected to. Each socket is connected to a room with it's own
+socket id, this room isn't returned.
+
+emits `my_room` to socket:
+
+```
+[roomIds]
+```
 
 ## counsellor specific endpoints
 
