@@ -79,7 +79,6 @@ describe('API', function() {
     });
 
     it('should not return inactive rooms (lastActive > 3 days)', function(done) {
-      // first create another room that has a newer lastActive
       createInactiveRoom(client2.id)
         .then(() => {
           client.emit(k.LIST_ROOMS);
@@ -87,6 +86,19 @@ describe('API', function() {
       client.on(k.LIST_ROOMS, data => {
         data.should.be.Array();
         data.length.should.equal(1);
+        done();
+      });
+    });
+
+    it('should return HOT room even if it is inactive (lastActive > 3 days)', function(done) {
+      createInactiveRoom(client2.id, ROOM_TYPE.HOT)
+        .then(() => {
+          client.emit(k.LIST_ROOMS);
+        });
+      client.on(k.LIST_ROOMS, data => {
+        data.should.be.Array();
+        data.length.should.equal(2);
+        data[0].roomType.should.equal(ROOM_TYPE.HOT);
         done();
       });
     });

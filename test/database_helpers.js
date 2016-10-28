@@ -56,12 +56,14 @@ function createClosedRoom(socketId) {
 /**
  * Creates a inactive room, currenctly defined as > 3 days
  * @param {string} socketId of the creator
+ * @param {string} roomType type of room
  * @return {object} promise of creating the room
  */
-function createInactiveRoom(socketId) {
+function createInactiveRoom(socketId, roomType = ROOM_TYPE.PUBLIC) {
   return createRoom(socketId, {
     roomName: 'Inactive Room',
     lastActive: new Date() - 4 * 24 * 60 * 60 * 1000,
+    roomType: roomType,
   });
 }
 
