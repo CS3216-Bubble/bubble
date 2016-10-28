@@ -67,9 +67,12 @@ describe('API', function() {
     });
 
     describe('should return error when user limit invalid', function() {
+      beforeEach(function() {
+        clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
+      });
+
       it('user limit is less than lower bound', function(done) {
         clientShouldReceiveAppError(client, e.INVALID_USER_LIMIT, done);
-        clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
         client.emit(k.CREATE_ROOM, {
           roomName: 'room name',
           userLimit: -1,
@@ -78,16 +81,14 @@ describe('API', function() {
 
       it('user limit is higher than upper bound', function(done) {
         clientShouldReceiveAppError(client, e.INVALID_USER_LIMIT, done);
-        clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
         client.emit(k.CREATE_ROOM, {
           roomName: 'room name',
           userLimit: 10000,
         });
       });
 
-      it('user limit is no a number', function(done) {
+      it('user limit is not a number', function(done) {
         clientShouldReceiveAppError(client, e.INVALID_USER_LIMIT, done);
-        clientShouldNotReceiveEvent(client, k.CREATE_ROOM);
         client.emit(k.CREATE_ROOM, {
           roomName: 'room name',
           userLimit: 'invalid',
