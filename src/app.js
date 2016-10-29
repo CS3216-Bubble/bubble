@@ -113,7 +113,7 @@ const ensureRoomExists = nextFn => socket => data => {
 const onCreateRoom = socket => data => {
   const {
     roomName,
-    userLimit = 7,
+    userLimit = 21,
     roomDescription = '',
     categories = [],
   } = data;
