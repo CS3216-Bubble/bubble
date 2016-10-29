@@ -13,6 +13,7 @@ import ISSUE_TYPE from './models/issue_type';
 import ROOM_TYPE from './models/room_type';
 import MESSAGE_TYPE from './models/message_type';
 import USER_TYPE from './models/user_type';
+import Push from './push';
 import logger from './logging';
 import {
   validateCategories,
@@ -26,6 +27,7 @@ import { IssueDB, RoomDB, MessageDB, UserDB } from './database';
 const app = express();
 const server = createServer(app);
 const io = socketio(server);
+const pushManager = new Push();
 
 app.use(raven.middleware.express.requestHandler(process.env.RAVEN_URL));
 app.use(raven.middleware.express.errorHandler(process.env.RAVEN_URL));
