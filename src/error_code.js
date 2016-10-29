@@ -20,3 +20,6 @@ export const INVALID_USER_LIMIT = 'invalid_user_limit';
 export const INVALID_MESSAGE = 'invalid_message';
 export const INVALID_CATEGORIES = 'invalid_categories';
 export const INVALID_PUSH_TOKEN = 'invalid_push_token';
+export const CLAIM_TOKEN_REJECTED = 'CLAIM_TOKEN_REJECTED';
+export const NO_CLAIM_TOKEN = 'no_claim_token';
+export const INVALID_CLAIM_TOKEN = 'invalid_claim_token';

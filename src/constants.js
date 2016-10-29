@@ -19,6 +19,7 @@ export const LIST_ISSUES = 'list_issues';
 export const CLAIM_ID = 'claim_id';
 export const MY_ROOMS = 'my_rooms';
 export const REGISTER_PUSH = 'register_push';
+export const SET_CLAIM_TOKEN = 'set_claim_token';
 
 export const VALID_CATEGORIES = [
   'Rant',

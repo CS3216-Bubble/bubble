@@ -16,6 +16,7 @@ import USER_TYPE from './models/user_type';
 import Push from './push';
 import logger from './logging';
 import {
+  validateClaimToken,
   validateCategories,
   validateMessage,
   validateRoomId,
@@ -707,6 +708,26 @@ function pushNotification(roomId, title = '', body = '') {
     .catch(err => logger.error(err));
 }
 
+const socketToClaimToken = {}
+
+function onSetClaimToken(socket) {
+  function onSetClaimTokenData(data) {
+    if (!data.claimToken) {
+      const message = 'Missing claimToken.';
+      emitAppError(socket, e.NO_CLAIM_TOKEN, message);
+    }
+
+    if (!validateClaimToken(data.claimToken)) {
+      const message = 'Invalid claimToken.';
+      emitAppError(socket, e.INVALID_CLAIM_TOKEN, message);
+    }
+
+    socketToClaimToken[socket.id] = data.claimToken;
+    socket.emit(k.SET_CLAIM_TOKEN);
+  }
+  return onSetClaimTokenData;
+}
+
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
   SOCKETS[socket.id] = socket;
@@ -729,6 +750,7 @@ io.on(k.CONNECTION, function(socket) {
   socket.on(k.LIST_ISSUES, onListIssues(socket));
   socket.on(k.MY_ROOMS, onMyRooms(socket));
   socket.on(k.REGISTER_PUSH, onRegisterPush(socket));
+  socket.on(k.SET_CLAIM_TOKEN, onSetClaimToken(socket));
 });
 
 export {
