@@ -59,7 +59,6 @@ class Push {
           return true;
         }
 
-        logger.info('Skip %s because no token', sid, { event: 'no_push' });
         return false;
       })
       .map(sid => this.pushTo(this.socketsToPushToken[sid], title, body)));
