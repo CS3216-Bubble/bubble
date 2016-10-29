@@ -125,7 +125,7 @@ const onCreateRoom = socket => data => {
 
   let parsedUserLimit = parseInt(userLimit, 10);
   if (!validateUserLimit(parsedUserLimit)) {
-    const message = 'User limit must be between 2 and 100.';
+    const message = `User limit must be between 2 and 100, got ${userLimit}.`;
     return emitAppError(socket, e.INVALID_USER_LIMIT, message);
   }
 
@@ -292,7 +292,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
   }
 
   if (!validateMessage(message)) {
-    const message = `Message length exceeds limit.`;
+    const message = `Message is invalid.`;
     return emitAppError(socket, e.INVALID_MESSAGE, message);
   }
 
@@ -659,7 +659,7 @@ function onClaimId(socket) {
     const existingSocket = oldSocketId && oldSocketId.connected;
 
     if (existingSocket) {
-      const message = 'Invalid oldSocketId';
+      const message = `Invalid oldSocketId: ${oldSocketId}, existing=${existingSocket}`;
       return emitAppError(socket, e.INVALID_OLD_SOCKET_ID, message);
     }
 
