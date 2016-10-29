@@ -7,6 +7,7 @@
   "dependencies": {
     "dotenv": "^2.0.0",
     "express": "^4.10.2",
+    "fcm-push": "^1.1.0",
     "loggly": "^1.1.1",
     "raven": "^0.12.1",
     "sequelize": "^3.24.3",

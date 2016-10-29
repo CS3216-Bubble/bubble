@@ -1253,6 +1253,11 @@
       "from": "fast-levenshtein@>=2.0.4 <2.1.0",
       "resolved": "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.5.tgz"
     },
+    "fcm-push": {
+      "version": "1.1.0",
+      "from": "fcm-push@latest",
+      "resolved": "https://registry.npmjs.org/fcm-push/-/fcm-push-1.1.0.tgz"
+    },
     "figures": {
       "version": "1.7.0",
       "from": "figures@>=1.3.5 <2.0.0",
@@ -2209,7 +2214,19 @@
     "node-pre-gyp": {
       "version": "0.6.29",
       "from": "node-pre-gyp@>=0.6.29 <0.7.0",
-      "resolved": "https://registry.npmjs.org/node-pre-gyp/-/node-pre-gyp-0.6.29.tgz"
+      "resolved": "https://registry.npmjs.org/node-pre-gyp/-/node-pre-gyp-0.6.29.tgz",
+      "dependencies": {
+        "nopt": {
+          "version": "3.0.6",
+          "from": "nopt@>=3.0.1 <3.1.0",
+          "resolved": "https://registry.npmjs.org/nopt/-/nopt-3.0.6.tgz"
+        },
+        "semver": {
+          "version": "5.2.0",
+          "from": "semver@>=5.2.0 <5.3.0",
+          "resolved": "https://registry.npmjs.org/semver/-/semver-5.2.0.tgz"
+        }
+      }
     },
     "node-uuid": {
       "version": "1.4.7",
@@ -2686,6 +2703,11 @@
       "version": "0.0.0",
       "from": "resumer@>=0.0.0 <0.1.0",
       "resolved": "https://registry.npmjs.org/resumer/-/resumer-0.0.0.tgz"
+    },
+    "retry": {
+      "version": "0.9.0",
+      "from": "retry@>=0.9.0 <0.10.0",
+      "resolved": "https://registry.npmjs.org/retry/-/retry-0.9.0.tgz"
     },
     "retry-as-promised": {
       "version": "2.0.1",
@@ -3968,7 +3990,24 @@
     "tar-pack": {
       "version": "3.1.4",
       "from": "tar-pack@>=3.1.0 <3.2.0",
-      "resolved": "https://registry.npmjs.org/tar-pack/-/tar-pack-3.1.4.tgz"
+      "resolved": "https://registry.npmjs.org/tar-pack/-/tar-pack-3.1.4.tgz",
+      "dependencies": {
+        "debug": {
+          "version": "2.2.0",
+          "from": "debug@>=2.2.0 <2.3.0",
+          "resolved": "https://registry.npmjs.org/debug/-/debug-2.2.0.tgz"
+        },
+        "ms": {
+          "version": "0.7.1",
+          "from": "ms@0.7.1",
+          "resolved": "https://registry.npmjs.org/ms/-/ms-0.7.1.tgz"
+        },
+        "once": {
+          "version": "1.3.3",
+          "from": "once@>=1.3.3 <1.4.0",
+          "resolved": "https://registry.npmjs.org/once/-/once-1.3.3.tgz"
+        }
+      }
     },
     "terraformer": {
       "version": "1.0.6",
