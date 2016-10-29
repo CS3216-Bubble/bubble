@@ -38,6 +38,13 @@ const SOCKETS = {};
 // [id] -> [rooms];
 const SocketIdToRooms = {};
 
+const socketToClaimToken = {};
+
+function cacheSocketRooms(socket) {
+  SocketIdToRooms[socket.id] = Object.keys(socket.rooms)
+    .filter(room => room !== socket.id);
+}
+
 app.get('/', function(req, res) {
   res.sendFile('index.html', {root: __dirname});
 });
@@ -149,6 +156,7 @@ const onCreateRoom = socket => data => {
   })
     .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
+      cacheSocketRooms(socket);
       logger.info(
         '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM });
       pushManager.subscribeSocketToRoomEvents(socket.id, room.roomId);
@@ -186,6 +194,8 @@ const onJoinRoom = ensureRoomExists(socket => data => {
           roomId: room.roomId,
           userId: socket.id,
         });
+
+        cacheSocketRooms(socket);
 
         logger.info(
           '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM });
@@ -436,8 +446,7 @@ const onDisconnect = socket => () => {
 
 const onDisconnecting = socket => () => {
   // save the rooms that socket.id was in for restore if reconnect
-  SocketIdToRooms[socket.id] = Object.keys(socket.rooms)
-    .filter(room => room !== socket.id);
+  cacheSocketRooms(socket);
   return Promise.all(Object.keys(socket.rooms).map(rid => {
     if (rid === socket.id) {
       return null;
@@ -655,24 +664,34 @@ function onClaimId(socket) {
       return emitAppError(socket, e.NO_OLD_SOCKET_ID, message);
     }
 
-    // if a socket tries to claim to be a socket that is currently connected
-    const oldSocketId = SOCKETS[data.oldSocketId];
+    if (!data.claimToken) {
+      const message = 'claimToken must be provided.';
+      return emitAppError(socket, e.NO_CLAIM_TOKEN, message);
+    }
 
-    if (!oldSocketId) {
-      const message = `Invalid oldSocketId: ${oldSocketId}`;
+    // if a socket tries to claim to be a socket that is currently connected
+    const oldSocket = SOCKETS[data.oldSocketId];
+
+    if (!oldSocket) {
+      const message = `Invalid oldSocketId: ${data.oldSocketId}`;
       return emitAppError(socket, e.INVALID_OLD_SOCKET_ID, message);
+    }
+
+    const savedClaimToken = socketToClaimToken[data.oldSocketId];
+
+    if (typeof savedClaimToken === 'undefined' || savedClaimToken !== data.claimToken) {
+      const message = `Claim token rejected.`;
+      return emitAppError(socket, e.CLAIM_TOKEN_REJECTED, message);
     }
 
     const oldRooms = SocketIdToRooms[data.oldSocketId];
 
-    if (typeof oldRooms === 'undefined') {
-      const message = 'oldSocketId cannot be found.';
-      return emitAppError(socket, e.OLD_SOCKET_ID_NOT_FOUND, message);
+    if (typeof oldRooms !== 'undefined') {
+      oldRooms.forEach(roomId => {
+        onJoinRoom(socket)({ roomId });
+      });
     }
 
-    oldRooms.forEach(roomId => {
-      onJoinRoom(socket)({ roomId });
-    });
     socket.emit(k.CLAIM_ID, {
       oldSocketId: data.oldSocketId
     });
@@ -707,8 +726,6 @@ function pushNotification(roomId, title = '', body = '') {
     .then(responses => logger.info('Pushed to %s', responses, { event: 'push'}))
     .catch(err => logger.error(err));
 }
-
-const socketToClaimToken = {}
 
 function onSetClaimToken(socket) {
   function onSetClaimTokenData(data) {

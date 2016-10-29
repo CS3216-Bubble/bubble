@@ -362,7 +362,8 @@ given a new socket id.
 
 ```
 {
-    oldSocketId: UserId
+    oldSocketId: UserId,
+    claimToken: String,
 }
 ```
 
@@ -499,10 +500,6 @@ User `report_user` without specifying a `targetUser`
 ### NO_OLD_SOCKET_ID
 
 When user `claim_id`, did not specify `oldSocketId`.
-
-### OLD_SOCKET_ID_NOT_FOUND
-
-When user `claim_id`, specified `oldSocketId` cannot be found.
 
 ### INVALID_OLD_SOCKET_ID
 

@@ -18,6 +18,7 @@ describe('API', function() {
   let client2;
   /* store the created roomId so tests can join this room */
   let roomId;
+  let claimToken = '123';
 
   beforeEach(function(done) {
     server.listen(3000);
@@ -41,17 +42,30 @@ describe('API', function() {
   describe(k.CLAIM_ID, function() {
     it('should return error when oldSocketId is not specified', function(done) {
       clientShouldReceiveAppError(client, e.NO_OLD_SOCKET_ID, done);
-      client.emit(k.CLAIM_ID, { /* oldSocketId is not specified */ });
-    });
-
-    it('should return error when oldSocketId does not have rooms', function(done) {
-      clientShouldReceiveAppError(client, e.OLD_SOCKET_ID_NOT_FOUND, done);
-      client.emit(k.CLAIM_ID, { oldSocketId: client2.id});
+      client.emit(k.SET_CLAIM_TOKEN, { claimToken });
+      client.on(k.SET_CLAIM_TOKEN, () =>
+        client.emit(k.CLAIM_ID, { /* oldSocketId is not specified */ }));
     });
 
     it('should return error when claiming socket that was never connected', function(done) {
       clientShouldReceiveAppError(client, e.INVALID_OLD_SOCKET_ID, done);
-      client.emit(k.CLAIM_ID, { oldSocketId: '123' });
+      client.emit(k.SET_CLAIM_TOKEN, { claimToken });
+      client.on(k.SET_CLAIM_TOKEN, () => client.emit(k.CLAIM_ID, {
+        claimToken,
+        oldSocketId: '123',
+      }));
+    });
+
+    it('should return error when claimToken does not match', function(done) {
+      const newClient = makeClient(io);
+      clientShouldReceiveAppError(newClient, e.CLAIM_TOKEN_REJECTED, done);
+
+      client.emit(k.SET_CLAIM_TOKEN, { claimToken });
+      client.on(k.SET_CLAIM_TOKEN, () => client.disconnect());
+      newClient.emit(k.CLAIM_ID, {
+        claimToken: 'does not match',
+        oldSocketId: client.id,
+      });
     });
 
     it('should make the new socket join the room old socket was in', function(done) {
@@ -60,8 +74,15 @@ describe('API', function() {
 
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {
+        client.emit(k.SET_CLAIM_TOKEN, { claimToken });
+      });
+
+      client.on(k.SET_CLAIM_TOKEN, () => {
         client.disconnect();
-        newClient.emit(k.CLAIM_ID, { oldSocketId });
+        newClient.emit(k.CLAIM_ID, {
+          claimToken,
+          oldSocketId,
+        });
       });
 
       newClient.on(k.CLAIM_ID, () => {
