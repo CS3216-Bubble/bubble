@@ -44,14 +44,14 @@ describe('API', function() {
       client.emit(k.CLAIM_ID, { /* oldSocketId is not specified */ });
     });
 
-    it('should return error when oldSocketId is not found', function(done) {
+    it('should return error when oldSocketId does not have rooms', function(done) {
       clientShouldReceiveAppError(client, e.OLD_SOCKET_ID_NOT_FOUND, done);
-      client.emit(k.CLAIM_ID, { oldSocketId: '123' });
+      client.emit(k.CLAIM_ID, { oldSocketId: client2.id});
     });
 
-    it('should return error when claiming a socket that is online', function(done) {
+    it('should return error when claiming socket that was never connected', function(done) {
       clientShouldReceiveAppError(client, e.INVALID_OLD_SOCKET_ID, done);
-      client.emit(k.CLAIM_ID, { oldSocketId: client.id });
+      client.emit(k.CLAIM_ID, { oldSocketId: '123' });
     });
 
     it('should make the new socket join the room old socket was in', function(done) {

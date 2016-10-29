@@ -656,10 +656,9 @@ function onClaimId(socket) {
 
     // if a socket tries to claim to be a socket that is currently connected
     const oldSocketId = SOCKETS[data.oldSocketId];
-    const existingSocket = oldSocketId && oldSocketId.connected;
 
-    if (existingSocket) {
-      const message = `Invalid oldSocketId: ${oldSocketId}, existing=${existingSocket}`;
+    if (!oldSocketId) {
+      const message = `Invalid oldSocketId: ${oldSocketId}`;
       return emitAppError(socket, e.INVALID_OLD_SOCKET_ID, message);
     }
 

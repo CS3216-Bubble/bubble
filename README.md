@@ -491,6 +491,10 @@ When user `claim_id`, did not specify `oldSocketId`.
 
 When user `claim_id`, specified `oldSocketId` cannot be found.
 
+### INVALID_OLD_SOCKET_ID
+
+When user `claim_id`, specified `oldSocketId` was never connected before.
+
 ### INVALID_USER_LIMIT
 
 When a invalid `userLimit` is specified when creating a room.
