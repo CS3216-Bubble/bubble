@@ -678,6 +678,40 @@ function onMyRooms(socket) {
   return onMyRoomsData;
 }
 
+const socketToPushTokens = {};
+
+function onRegisterPush(socket) {
+  function onRegisterPushData(data) {
+    if (!data.pushToken) {
+      const message = 'Push token is invalid.';
+      emitAppError(socket, e.INVALID_PUSH_TOKEN, message);
+    }
+
+    socketToPushTokens[socket.id] = data.pushToken;
+    socket.emit(k.REGISTER_PUSH, {});
+  }
+  return onRegisterPushData;
+}
+
+function pushToDisconnectedSockets(roomId, title = '', body = '') {
+  const pushTokensForDisconnectedClients = RoomToSocketId[roomId]
+    .filter(
+      sid => SOCKETS[sid] && SOCKETS[sid].disconnected)
+    .filter(
+      sid => typeof socketToPushTokens[sid] !== 'undefined')
+    .map(
+      sid => socketToPushTokens[sid]);
+
+  logger.info('Preparing to push to %s', pushTokensForDisconnectedClients);
+  Promise.all(
+    pushTokensForDisconnectedClients.map(
+      pushToken => pushManager.pushTo(pushToken, title, body)
+    )
+  )
+    .then(responses => logger.info('Pushed to %s', responses, { event: 'push'}))
+    .catch(err => logger.error(err));
+}
+
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
   SOCKETS[socket.id] = socket;
@@ -699,6 +733,7 @@ io.on(k.CONNECTION, function(socket) {
   socket.on(k.REPORT_USER, onReportUser(socket));
   socket.on(k.LIST_ISSUES, onListIssues(socket));
   socket.on(k.MY_ROOMS, onMyRooms(socket));
+  socket.on(k.REGISTER_PUSH, onRegisterPush(socket));
 });
 
 export {

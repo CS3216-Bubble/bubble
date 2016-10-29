@@ -74,4 +74,16 @@ describe('API', function() {
       });
     });
   });
+
+  describe('registerPush', function() {
+    it('should register push', function(done) {
+      client.emit(k.REGISTER_PUSH, { pushToken: '123'});
+      client.on(k.REGISTER_PUSH, () => done());
+    });
+
+    it('send a push when client is disconnected', function(done) {
+      client.emit(k.REGISTER_PUSH, { pushToken: '123'});
+      client.on(k.REGISTER_PUSH, () => done());
+    });
+  });
 });

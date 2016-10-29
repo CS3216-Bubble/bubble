@@ -18,6 +18,7 @@ export const COUNSELLOR_ONLINE = 'counsellor_online';
 export const LIST_ISSUES = 'list_issues';
 export const CLAIM_ID = 'claim_id';
 export const MY_ROOMS = 'my_rooms';
+export const REGISTER_PUSH = 'register_push';
 
 export const VALID_CATEGORIES = [
   'Rant',
