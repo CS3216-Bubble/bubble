@@ -28,7 +28,7 @@ describe('API', function() {
       roomId = room.roomId;
       done();
     });
-    createRoom(client);
+    createRoom(client, { userLimit: 10 });
   });
 
   afterEach(function(done) {
@@ -61,12 +61,7 @@ describe('API', function() {
       client2.emit(k.JOIN_ROOM, { roomId });
       client.on(k.JOIN_ROOM, () => {
         client.disconnect();
-      });
-
-      client2.on(k.EXIT_ROOM, data => {
-        if (data.userId === oldSocketId) {
-          newClient.emit(k.CLAIM_ID, { oldSocketId });
-        }
+        newClient.emit(k.CLAIM_ID, { oldSocketId });
       });
 
       newClient.on(k.CLAIM_ID, () => {
