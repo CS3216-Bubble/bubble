@@ -16,7 +16,7 @@ import {
 const counsellorId = '123';
 const counsellorName = 'CC';
 
-describe('API', function() {
+describe.skip('API', function() {
   this.timeout(3000);
   let client;
   let counsellor;

@@ -104,7 +104,7 @@ const ensureRoomExists = nextFn => socket => data => {
       return nextFn(socket)({...data, room: r});
     })
     .catch(err => {
-      console.error(err);
+      logger.error(err);
       const message = `Room ${roomId} cannot be found.`;
       return emitAppError(socket, e.ROOM_ID_NOT_FOUND, message);
     });
@@ -151,7 +151,7 @@ const onCreateRoom = socket => data => {
       logger.info(
         '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM });
     }))
-    .catch(e => console.error(e));
+    .catch(e => logger.error(e));
 };
 
 const onJoinRoom = ensureRoomExists(socket => data => {
@@ -364,7 +364,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
         sentByMe: true,
       });
     })
-    .catch(e => console.error(e));
+    .catch(e => logger.error(e));
 });
 
 /**

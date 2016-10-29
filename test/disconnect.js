@@ -13,7 +13,7 @@ describe('API', function() {
   this.timeout(3000);
   let client;
   let client2;
-  let roomId;
+  let roomId; // eslint-disable-line no-unused-vars
 
   beforeEach(function(done) {
     server.listen(3000);
