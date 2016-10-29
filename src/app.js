@@ -419,8 +419,8 @@ const onListRooms = socket => () => {
 };
 
 const onDisconnect = socket => () => {
+  // don't delete, we need the connection status
   logger.info('%s disconnects', socket.id, { event: k.DISCONNECT });
-  delete SOCKETS[socket.id];
 };
 
 const onDisconnecting = socket => () => {
