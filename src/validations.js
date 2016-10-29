@@ -93,7 +93,7 @@ function validCategory(cat) {
  */
 function validateCategories(cats) {
   return Array.isArray(cats) &&
-    cats.map(validCategory).reduce((x, y) => x && y);
+    cats.map(validCategory).reduce((x, y) => x && y, true);
 }
 
 export {

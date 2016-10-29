@@ -98,6 +98,16 @@ describe('API', function() {
 
     it('should default limit of room to 7');
 
+    it('should be able to create a room with no categories ', function(done) {
+      client.on(k.CREATE_ROOM, function() {
+        done();
+      });
+      client.emit(k.CREATE_ROOM, {
+        roomName: 'Room Name',
+        categories: [],
+      });
+    });
+
     it('should return room information', function(done) {
       client.on(k.CREATE_ROOM, function(room) {
         room.should.have.keys(...ROOM_KEYS);
