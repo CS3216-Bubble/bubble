@@ -150,6 +150,7 @@ const onCreateRoom = socket => data => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
       logger.info(
         '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM });
+      pushManager.subscribeSocketToRoomEvents(socket.id, room.roomId);
     }))
     .catch(e => logger.error(e));
 };
@@ -187,6 +188,8 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
         logger.info(
           '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM });
+
+        pushManager.subscribeSocketToRoomEvents(socket.id, room.roomId);
 
         io.in(room.roomId).clients((error, clients) => {
           if (error) throw error;
@@ -237,8 +240,11 @@ const onExitRoom = ensureRoomExists(socket => data => {
             roomId: room.roomId,
             userId: socket.id,
           });
+
           logger.info(
             '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM });
+          pushManager.unsubscribeSocketToRoomEvents(socket.id, room.roomId);
+
           return socket.emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
@@ -317,6 +323,10 @@ const onAddMessage = ensureRoomExists(socket => data => {
         ...msg.toJSON(),
         sentByMe: true,
       });
+      pushNotification(
+        room.roomId,
+        `New message in ${room.roomName}`,
+        message);
     })
     .catch(e => logger.error(e));
 });
@@ -645,7 +655,8 @@ function onClaimId(socket) {
     }
 
     // if a socket tries to claim to be a socket that is currently connected
-    const existingSocket = SOCKETS[data.oldSocketId];
+    const oldSocketId = SOCKETS[data.oldSocketId];
+    const existingSocket = oldSocketId && oldSocketId.connected;
 
     if (existingSocket) {
       const message = 'Invalid oldSocketId';
@@ -678,8 +689,6 @@ function onMyRooms(socket) {
   return onMyRoomsData;
 }
 
-const socketToPushTokens = {};
-
 function onRegisterPush(socket) {
   function onRegisterPushData(data) {
     if (!data.pushToken) {
@@ -687,27 +696,14 @@ function onRegisterPush(socket) {
       emitAppError(socket, e.INVALID_PUSH_TOKEN, message);
     }
 
-    socketToPushTokens[socket.id] = data.pushToken;
+    pushManager.addSocketToPushToken(socket.id, data.pushToken);
     socket.emit(k.REGISTER_PUSH, {});
   }
   return onRegisterPushData;
 }
 
-function pushToDisconnectedSockets(roomId, title = '', body = '') {
-  const pushTokensForDisconnectedClients = RoomToSocketId[roomId]
-    .filter(
-      sid => SOCKETS[sid] && SOCKETS[sid].disconnected)
-    .filter(
-      sid => typeof socketToPushTokens[sid] !== 'undefined')
-    .map(
-      sid => socketToPushTokens[sid]);
-
-  logger.info('Preparing to push to %s', pushTokensForDisconnectedClients);
-  Promise.all(
-    pushTokensForDisconnectedClients.map(
-      pushToken => pushManager.pushTo(pushToken, title, body)
-    )
-  )
+function pushNotification(roomId, title = '', body = '') {
+  pushManager.sendEventForRoom(roomId, title, body)
     .then(responses => logger.info('Pushed to %s', responses, { event: 'push'}))
     .catch(err => logger.error(err));
 }
