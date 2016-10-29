@@ -382,6 +382,19 @@ emits `my_room` to socket:
 [roomIds]
 ```
 
+### register_push
+
+Client emits this to register its socket id and token as recipient for
+push notifications. Used to subscribe to pushes for events that happen
+in the rooms socket is in, but disconnected.
+
+```
+{
+    pushToken: String
+}
+```
+
+
 ## counsellor specific endpoints
 
 These events are used for counsellors only
@@ -493,3 +506,7 @@ Message must be a string < 3000 characters.
 When invalid `categories` is specified on `create_room`.
 Categories must be an array, that can be empty, or must contain one
 or more of the accepted category.
+
+### INVALID_PUSH_TOKEN
+
+When invalid `pushToken` is specified on `registerPush`.
