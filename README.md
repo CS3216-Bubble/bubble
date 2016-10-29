@@ -477,3 +477,19 @@ When user `claim_id`, did not specify `oldSocketId`.
 ### OLD_SOCKET_ID_NOT_FOUND
 
 When user `claim_id`, specified `oldSocketId` cannot be found.
+
+### INVALID_USER_LIMIT
+
+When a invalid `userLimit` is specified when creating a room.
+UserLimit must be between 2 and 100.
+
+### INVALID_MESSAGE
+
+When invalid `message` is specified on `add_message`.
+Message must be a string < 3000 characters.
+
+### INVALID_CATEGORIES
+
+When invalid `categories` is specified on `create_room`.
+Categories must be an array, that can be empty, or must contain one
+or more of the accepted category.
