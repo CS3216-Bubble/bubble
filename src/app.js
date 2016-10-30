@@ -659,6 +659,8 @@ const onListIssues = socket => data => {
  */
 function onClaimId(socket) {
   function onClaimIdData(data) {
+    logger.info('%s tries to claim id', socket.id, { event: k.CLAIM_ID });
+
     if (!data.oldSocketId) {
       const message = 'oldSocketId must be provided.';
       return emitAppError(socket, e.NO_OLD_SOCKET_ID, message);
@@ -684,6 +686,7 @@ function onClaimId(socket) {
       return emitAppError(socket, e.CLAIM_TOKEN_REJECTED, message);
     }
 
+    logger.info('%s claimed %s', socket.id, data.oldSocketId, { event: k.CLAIM_ID });
     const oldRooms = SocketIdToRooms[data.oldSocketId];
 
     if (typeof oldRooms !== 'undefined') {
