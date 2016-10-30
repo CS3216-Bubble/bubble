@@ -76,11 +76,6 @@ describe('API', function() {
 
     it('should return error when room is private (counsellor)');
     it('should return error when user is already in another room');
-    it('should return error if user is already in room', function(done) {
-      clientShouldNotReceiveEvent(client, k.JOIN_ROOM);
-      clientShouldReceiveAppError(client, e.USER_ALREADY_IN_ROOM, done);
-      client.emit(k.JOIN_ROOM, { roomId });
-    });
 
     it('should emit JOIN_ROOM event to other users in room', function(done) {
       client.on(k.JOIN_ROOM, function(data) {

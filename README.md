@@ -465,10 +465,6 @@ Room is currently full.
 
 Specified room id cannot be found.
 
-### USER_ALREADY_IN_ROOM
-
-User tries to `join_room`, and is already in the room.
-
 ### USER_NOT_IN_ROOM
 
 User tries to `add_message` or `add_reaction` to a room user is not in.

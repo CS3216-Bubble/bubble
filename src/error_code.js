@@ -5,7 +5,6 @@ export const NO_ROOM_ID = 'no_room_id';
 export const NO_ROOM_NAME = 'no_room_name';
 export const ROOM_FULL = 'room_full';
 export const ROOM_ID_NOT_FOUND = 'room_id_not_found';
-export const USER_ALREADY_IN_ROOM = 'user_already_in_room';
 export const USER_NOT_IN_ROOM = 'user_not_in_room';
 export const COUNSELLOR_UNAVAILABLE = 'counsellor_unavailable';
 export const NO_USER_TO_REPORT = 'no_user_to_report';
