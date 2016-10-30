@@ -729,7 +729,7 @@ function pushNotification(roomId, title = '', body = '') {
   pushManager.sendEventForRoom(roomId, title, body)
     .then(responses => {
       if (responses && responses.length && responses.length > 0) {
-        logger.info('Pushed to %s', responses, { event: 'push'})
+        logger.info('Pushed to %s', responses, { event: 'push'});
       }})
     .catch(err => logger.error(err));
 }
