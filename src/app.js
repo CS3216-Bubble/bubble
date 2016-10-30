@@ -719,6 +719,7 @@ function onRegisterPush(socket) {
     }
 
     pushManager.addSocketToPushToken(socket.id, data.pushToken);
+    logger.info('%s registered push', socket.id, { event: k.REGISTER_PUSH });
     socket.emit(k.REGISTER_PUSH, {});
   }
   return onRegisterPushData;
@@ -746,6 +747,7 @@ function onSetClaimToken(socket) {
     }
 
     socketToClaimToken[socket.id] = data.claimToken;
+    logger.info('%s set claim token', socket.id, { event: k.SET_CLAIM_TOKEN });
     socket.emit(k.SET_CLAIM_TOKEN);
   }
   return onSetClaimTokenData;
