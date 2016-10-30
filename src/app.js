@@ -726,7 +726,10 @@ function onRegisterPush(socket) {
 
 function pushNotification(roomId, title = '', body = '') {
   pushManager.sendEventForRoom(roomId, title, body)
-    .then(responses => logger.info('Pushed to %s', responses, { event: 'push'}))
+    .then(responses => {
+      if (responses && responses.length && responses.length > 0) {
+        logger.info('Pushed to %s', responses, { event: 'push'})
+      }})
     .catch(err => logger.error(err));
 }
 
