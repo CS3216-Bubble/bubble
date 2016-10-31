@@ -322,10 +322,12 @@ const onAddMessage = ensureRoomExists(socket => data => {
     .then(() => {
       socket.to(room.roomId).emit(k.ADD_MESSAGE, {
         ...msg.toJSON(),
+        roomName: room.roomName,
         sentByMe: false,
       });
       socket.emit(k.ADD_MESSAGE, {
         ...msg.toJSON(),
+        roomName: room.roomName,
         sentByMe: true,
       });
       pushNotification(
