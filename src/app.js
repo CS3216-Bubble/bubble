@@ -101,7 +101,7 @@ const ensureRoomExists = nextFn => socket => data => {
     },
     include: [MessageDB],
     order: [
-      [MessageDB, 'createdAt', 'DESC'],
+      [MessageDB, 'createdAt', 'ASC'],
     ],
   })
     .then(r => {
@@ -211,7 +211,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
 
 /**
  * Limits messages to first 100.
- * Messages should have been sorted by createdAt DESC first.
+ * Messages should have been sorted by createdAt ASC first.
  *
  * @param {array} messages an array of messages
  * @return {array} max 100 messages
@@ -422,12 +422,20 @@ const onListRooms = socket => () => {
 
       },
       include: [MessageDB],
+      order: [
+        [MessageDB, 'createdAt', 'ASC'],
+      ],
     })
     .then(rooms => {
       return rooms
         .filter(r => r.numUsers >= 0)
         .filter(r => r.roomType !== ROOM_TYPE.PRIVATE)
-        .map(roomToJSON);
+        .map(r => {
+          return {
+            ...roomToJSON(r),
+            messages: filterMessagesLimitX(r.messages),
+          };
+        });
     })
     .then(rooms => {
       rooms.sort(compareRoom);
