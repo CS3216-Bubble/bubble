@@ -422,12 +422,20 @@ const onListRooms = socket => () => {
 
       },
       include: [MessageDB],
+      order: [
+        [MessageDB, 'createdAt', 'DESC'],
+      ],
     })
     .then(rooms => {
       return rooms
         .filter(r => r.numUsers >= 0)
         .filter(r => r.roomType !== ROOM_TYPE.PRIVATE)
-        .map(roomToJSON);
+        .map(r => {
+          return {
+            ...roomToJSON(r),
+            messages: filterMessagesLimitX(r.messages),
+          };
+        });
     })
     .then(rooms => {
       rooms.sort(compareRoom);
