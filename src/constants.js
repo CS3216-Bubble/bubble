@@ -4,6 +4,7 @@ export const CREATE_ROOM = 'create_room';
 export const JOIN_ROOM = 'join_room';
 export const VIEW_ROOM = 'view_room';
 export const EXIT_ROOM = 'exit_room';
+export const I_EXIT = 'i_exit';
 export const LIST_ROOMS = 'list_rooms';
 export const TYPING = 'typing';
 export const STOP_TYPING = 'stop_typing';

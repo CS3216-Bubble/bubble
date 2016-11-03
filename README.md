@@ -142,6 +142,8 @@ Emits event `exit_room` to all users connected to room:
 }
 ```
 
+will also emit `i_exit` to socket which requested to leave room
+
 ### list_rooms
 
 ```

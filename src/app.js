@@ -250,6 +250,10 @@ const onExitRoom = ensureRoomExists(socket => data => {
             '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM });
           pushManager.unsubscribeSocketToRoomEvents(socket.id, room.roomId);
 
+          socket.emit(k.I_EXIT, {
+            roomId: room.roomId,
+            userId: socket.id,
+          });
           return socket.emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
