@@ -96,6 +96,21 @@ describe('API', function() {
       client2.emit(k.JOIN_ROOM, { roomId });
     });
 
+    it('should emit JOIN_ROOM event to user if user already in room', function(done) {
+      let count = 0;
+      client2.on(k.JOIN_ROOM, function(room) {
+        count += 1;
+        if (count === 2) {
+          room.should.have.keys(...ROOM_KEYS);
+          room.should.have.keys('participants');
+          room.participants.should.containEql(client.id);
+          done();
+        }
+      });
+      client2.emit(k.JOIN_ROOM, { roomId });
+      client2.emit(k.JOIN_ROOM, { roomId });
+    });
+
     it('should update room with new member');
 
     it('should show messages sorted with newest first', function(done) {

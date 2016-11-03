@@ -172,6 +172,15 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     return emitAppError(socket, e.ROOM_CLOSED, message);
   }
 
+  if (Object.keys(socket.rooms).includes(room.roomId)) {
+    // if socket is already in room, do nothing
+    return socket.emit(k.JOIN_ROOM, {
+      ...roomToJSON(room),
+      userId: socket.id,
+      messages: filterMessagesLimitX(room.messages),
+    });
+  }
+
   // ensures that we are under the user limit for the room
   const aboveLimit = room.numUsers + 1 > room.userLimit;
   if (aboveLimit) {
