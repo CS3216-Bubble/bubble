@@ -468,14 +468,17 @@ const onDisconnecting = socket => () => {
     if (rid === socket.id) {
       return null;
     }
+    let roomId;
     return RoomDB.findById(rid)
       .then(r => {
         r.numUsers -= 1;
         r.save();
+        roomId = r.roomId;
       })
       .then(() => {
         return socket.to(rid).emit(k.EXIT_ROOM, {
           userId: socket.id,
+          roomId,
         });
       });
   }));

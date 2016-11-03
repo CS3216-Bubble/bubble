@@ -42,7 +42,7 @@ describe('API', function() {
       });
 
       client.on(k.JOIN_ROOM, data => {
-        data.should.have.keys('userId');
+        data.should.have.keys('userId', 'roomId');
         data.userId.should.equal(client2.id);
         client2.disconnect();
       });
