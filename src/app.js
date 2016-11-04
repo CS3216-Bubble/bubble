@@ -16,7 +16,6 @@ import USER_TYPE from './models/user_type';
 import Push from './push';
 import logger from './logging';
 import {
-  validateClaimToken,
   validateCategories,
   validateMessage,
   validateRoomId,
@@ -37,8 +36,6 @@ app.use(raven.middleware.express.errorHandler(process.env.RAVEN_URL));
 const SOCKETS = {};
 // [id] -> [rooms];
 const SocketIdToRooms = {};
-
-const socketToClaimToken = {};
 
 function socketIdToBubbleId(socketId) {
   return SOCKETS[socketId].bubbleId;
@@ -687,60 +684,6 @@ const onListIssues = socket => data => {
 
 // }
 
-/**
- * Called when socket wants to claim an old socket id.
- * If the old socket id can be found, we associate this new socket
- * with the old socket by making this socket join the rooms that
- * the old socket was in before being disconnected.
- *
- * @param {object} socket socket that sent the event
- * @return {function} callback
- */
-function onClaimId(socket) {
-  function onClaimIdData(data) {
-    logger.info('%s tries to claim id', socket.id, { event: k.CLAIM_ID });
-
-    if (!data.oldSocketId) {
-      const message = 'oldSocketId must be provided.';
-      return emitAppError(socket, e.NO_OLD_SOCKET_ID, message);
-    }
-
-    if (!data.claimToken) {
-      const message = 'claimToken must be provided.';
-      return emitAppError(socket, e.NO_CLAIM_TOKEN, message);
-    }
-
-    // if a socket tries to claim to be a socket that is currently connected
-    const oldSocket = SOCKETS[data.oldSocketId];
-
-    if (!oldSocket) {
-      const message = `Invalid oldSocketId: ${data.oldSocketId}`;
-      return emitAppError(socket, e.INVALID_OLD_SOCKET_ID, message);
-    }
-
-    const savedClaimToken = socketToClaimToken[data.oldSocketId];
-
-    if (typeof savedClaimToken === 'undefined' || savedClaimToken !== data.claimToken) {
-      const message = `Claim token rejected.`;
-      return emitAppError(socket, e.CLAIM_TOKEN_REJECTED, message);
-    }
-
-    logger.info('%s claimed %s', socket.id, data.oldSocketId, { event: k.CLAIM_ID });
-    const oldRooms = SocketIdToRooms[data.oldSocketId];
-
-    if (typeof oldRooms !== 'undefined') {
-      oldRooms.forEach(roomId => {
-        onJoinRoom(socket)({ roomId });
-      });
-    }
-
-    socket.emit(k.CLAIM_ID, {
-      oldSocketId: data.oldSocketId
-    });
-  }
-  return onClaimIdData;
-}
-
 function onMyRooms(socket) {
   function onMyRoomsData() {
     socket.emit(
@@ -773,25 +716,6 @@ function pushNotification(roomId, title = '', body = '') {
     .catch(err => logger.error(err));
 }
 
-function onSetClaimToken(socket) {
-  function onSetClaimTokenData(data) {
-    if (!data.claimToken) {
-      const message = 'Missing claimToken.';
-      emitAppError(socket, e.NO_CLAIM_TOKEN, message);
-    }
-
-    if (!validateClaimToken(data.claimToken)) {
-      const message = 'Invalid claimToken.';
-      emitAppError(socket, e.INVALID_CLAIM_TOKEN, message);
-    }
-
-    socketToClaimToken[socket.id] = data.claimToken;
-    logger.info('%s set claim token', socket.id, { event: k.SET_CLAIM_TOKEN });
-    socket.emit(k.SET_CLAIM_TOKEN);
-  }
-  return onSetClaimTokenData;
-}
-
 const TokenToId = {};
 const BubbleToSockets = {};
 
@@ -805,7 +729,7 @@ function onMyId(socket) {
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
 
-  // try to get a claim token in query
+  // try to get a token in query
   const bubbleToken = socket.request._query.bubble;
 
   let bubbleId = uuid.v4();
@@ -823,7 +747,6 @@ io.on(k.CONNECTION, function(socket) {
   socket.bubbleId = bubbleId;
 
   SOCKETS[socket.id] = socket;
-  socket.on(k.CLAIM_ID, onClaimId(socket));
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
   socket.on(k.JOIN_ROOM, onJoinRoom(socket));
   socket.on(k.EXIT_ROOM, onExitRoom(socket));
@@ -842,7 +765,6 @@ io.on(k.CONNECTION, function(socket) {
   socket.on(k.LIST_ISSUES, onListIssues(socket));
   socket.on(k.MY_ROOMS, onMyRooms(socket));
   socket.on(k.REGISTER_PUSH, onRegisterPush(socket));
-  socket.on(k.SET_CLAIM_TOKEN, onSetClaimToken(socket));
   socket.on(k.MY_ID, onMyId(socket));
 });
 

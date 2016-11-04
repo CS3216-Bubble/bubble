@@ -86,21 +86,4 @@ describe('API', function() {
       client.on(k.REGISTER_PUSH, () => done());
     });
   });
-
-  describe('set_claim_token', function() {
-    it('should set claim token', function(done) {
-      client.emit(k.SET_CLAIM_TOKEN, { claimToken: '123'});
-      client.on(k.SET_CLAIM_TOKEN, () => done());
-    });
-
-    it('return error if claimToken is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.NO_CLAIM_TOKEN, done);
-      client.emit(k.SET_CLAIM_TOKEN, { /* claimToken not specified */ });
-    });
-
-    it('return error if claimToken is not specified', function(done) {
-      clientShouldReceiveAppError(client, e.INVALID_CLAIM_TOKEN, done);
-      client.emit(k.SET_CLAIM_TOKEN, { claimToken: ['invalid'] });
-    });
-  });
 });

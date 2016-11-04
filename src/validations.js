@@ -96,18 +96,8 @@ function validateCategories(cats) {
     cats.map(validCategory).reduce((x, y) => x && y, true);
 }
 
-/**
- * Tests that the claimToken is valid
- * @param {any} claimToken claimToken to check
- * @return {bool} if claimToken is valid
- */
-function validateClaimToken(claimToken) {
-  return validateString(claimToken) && validateStringLength(claimToken, 200);
-}
-
 export {
   validateCategories,
-  validateClaimToken,
   validateMessage,
   validateRoomId,
   validateString,
