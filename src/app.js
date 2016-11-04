@@ -38,7 +38,10 @@ const SOCKETS = {};
 const SocketIdToRooms = {};
 
 function socketIdToBubbleId(socketId) {
-  return SOCKETS[socketId].bubbleId;
+  if (Object.keys(SOCKETS).includes(socketId)) {
+    return SOCKETS[socketId].bubbleId;
+  }
+  return "";
 }
 
 function cacheSocketRooms(socket) {
