@@ -157,21 +157,6 @@
     return false;
   });
 
-  $('#setclaimtoken').submit(function() {
-    socket.emit('set_claim_token', {
-      claimToken: $('#claimtoken').val(),
-    });
-    return false;
-  });
-
-  $('#claimid').submit(function() {
-    socket.emit('claim_id', {
-      oldSocketId: $('#oldsocketid').val(),
-      claimToken: $('#claimtoken').val(),
-    });
-    return false;
-  });
-
   var kdtimeout;
   msgInput.on('keydown', function() {
     if (!roomId) {
