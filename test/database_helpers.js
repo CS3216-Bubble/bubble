@@ -20,6 +20,7 @@ function createRoom(socketId, opts) {
     lastActive: new Date(),
     numUsers: 1,
     createdBy: socketId,
+    createdByBubbleId: "NOT_IMPT",
   };
   const options = {
     ...defaults,
