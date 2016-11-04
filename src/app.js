@@ -339,6 +339,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
       messageType: MESSAGE_TYPE.MESSAGE,
       content: message,
       roomRoomId: room.roomId,
+      bubbleId: socket.bubbleId,
     })
     .then(m => {
       msg = m;
@@ -393,6 +394,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
       content: reaction,
       roomRoomId: room.roomId,
       targetUser: targetUser,
+      bubbleId: socket.bubbleId,
     })
     .then(m => {
       msg = m;
