@@ -75,8 +75,6 @@ const roomToJSON = room => {
   return {
     ...j,
     categories: JSON.parse(j.categories),
-    // this is used only in the migration period from socket.id -> bubbleId
-    createdByBubbleId: socketIdToBubbleId(room.createdBy),
   };
 };
 
@@ -159,6 +157,7 @@ const onCreateRoom = socket => data => {
     lastActive: new Date(),
     numUsers: 1,
     createdBy: socket.id,
+    createdByBubbleId: socket.bubbleId,
   })
     .then(room => socket.join(roomId, () => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
