@@ -37,13 +37,6 @@ const SOCKETS = {};
 // [id] -> [rooms];
 const SocketIdToRooms = {};
 
-function socketIdToBubbleId(socketId) {
-  if (Object.keys(SOCKETS).includes(socketId)) {
-    return SOCKETS[socketId].bubbleId;
-  }
-  return "";
-}
-
 function cacheSocketRooms(socket) {
   SocketIdToRooms[socket.id] = Object.keys(socket.rooms)
     .filter(room => room !== socket.id);
@@ -201,7 +194,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         socket.to(room.roomId).emit(k.JOIN_ROOM, {
           roomId: room.roomId,
           userId: socket.id,
-          bubbleId: socketIdToBubbleId(socket.id),
+          bubbleId: socket.bubbleId,
         });
 
         cacheSocketRooms(socket);
@@ -216,7 +209,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
           socket.emit(k.JOIN_ROOM, {
             ...roomToJSON(room),
             userId: socket.id,
-            bubbleId: socketIdToBubbleId(socket.id),
+            bubbleId: socket.bubbleId,
             messages: filterMessagesLimitX(room.messages),
             participants: clients,
           });
@@ -260,7 +253,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
           socket.to(room.roomId).emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
-            bubbleId: socketIdToBubbleId(socket.id),
+            bubbleId: socket.bubbleId,
           });
 
           logger.info(
@@ -270,12 +263,12 @@ const onExitRoom = ensureRoomExists(socket => data => {
           socket.emit(k.I_EXIT, {
             roomId: room.roomId,
             userId: socket.id,
-            bubbleId: socketIdToBubbleId(socket.id),
+            bubbleId: socket.bubbleId,
           });
           return socket.emit(k.EXIT_ROOM, {
             roomId: room.roomId,
             userId: socket.id,
-            bubbleId: socketIdToBubbleId(socket.id),
+            bubbleId: socket.bubbleId,
           });
         });
       }
@@ -293,7 +286,7 @@ const onTyping = ensureRoomExists(socket => data => {
   socket.to(room.roomId).emit(k.TYPING, {
     roomId: room.roomId,
     userId: socket.id,
-    bubbleId: socketIdToBubbleId(socket.id),
+    bubbleId: socket.bubbleId,
   });
 });
 
@@ -308,7 +301,7 @@ const onStopTyping = ensureRoomExists(socket => data => {
   socket.to(room.roomId).emit(k.STOP_TYPING, {
     roomId: room.roomId,
     userId: socket.id,
-    bubbleId: socketIdToBubbleId(socket.id),
+    bubbleId: socket.bubbleId,
   });
 });
 
@@ -350,13 +343,13 @@ const onAddMessage = ensureRoomExists(socket => data => {
         ...msg.toJSON(),
         roomName: room.roomName,
         sentByMe: false,
-        bubbleId: socketIdToBubbleId(socket.id),
+        bubbleId: socket.bubbleId,
       });
       socket.emit(k.ADD_MESSAGE, {
         ...msg.toJSON(),
         roomName: room.roomName,
         sentByMe: true,
-        bubbleId: socketIdToBubbleId(socket.id),
+        bubbleId: socket.bubbleId,
       });
       pushNotification(
         room.roomId,
@@ -404,12 +397,12 @@ const onAddReaction = ensureRoomExists(socket => data => {
       socket.to(room.roomId).emit(k.ADD_REACTION, {
         ...msg.toJSON(),
         sentByMe: true,
-        bubbleId: socketIdToBubbleId(socket.id),
+        bubbleId: socket.bubbleId,
       });
       socket.emit(k.ADD_REACTION, {
         ...msg.toJSON(),
         sentByMe: true,
-        bubbleId: socketIdToBubbleId(socket.id),
+        bubbleId: socket.bubbleId,
       });
     })
     .catch(e => logger.error(e));
@@ -497,7 +490,7 @@ const onDisconnecting = socket => () => {
         return socket.to(rid).emit(k.EXIT_ROOM, {
           userId: socket.id,
           roomId,
-          bubbleId: socketIdToBubbleId(socket.id),
+          bubbleId: socket.bubbleId,
         });
       });
   }));
@@ -536,7 +529,7 @@ const onSetUserName = socket => data => {
       socket.to(roomId).emit(k.SET_USER_NAME, {
         userId: socket.id,
         newName,
-        bubbleId: socketIdToBubbleId(socket.id),
+        bubbleId: socket.bubbleId,
       });
     });
 };
