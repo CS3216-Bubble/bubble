@@ -355,38 +355,6 @@ contains information about the counsellor and the private chat room created.
 }
 ```
 
-### claim_id
-
-When a socket emits this events, it is trying to claim an older socket id,
-i.e. rejoin the same rooms that the old socket id was in.
-This is useful on a flaky connection where a socket reconnects and is
-given a new socket id.
-
-```
-{
-    oldSocketId: UserId,
-    claimToken: String,
-}
-```
-
-If claim is successful, a `claim_id` is emitted to the user too.
-Note: because the socket joins all the room it was in,
-the `join_room` event is emitted to the socket and all other
-users in the room as well (same semantics as joining a room).
-
-### set_claim_token
-
-Used for verifying that a claim for an old id is valid.
-When client emits `claim_id`, a `claimToken` is specified,
-the server will then match that `claimToken` with the token set by
-`set_claim_token` by a websocket with the id specified in the `claim_id`.
-
-```
-{
-    claimToken: String,
-}
-```
-
 ### my_rooms
 A client emits this event to get the server's view of what rooms this
 client is connected to. Each socket is connected to a room with it's own
@@ -495,14 +463,6 @@ User `report_user` without specifying a `targetUser`
 
 `newName` specified for `set_user_name` is not valid, not a string.
 
-### NO_OLD_SOCKET_ID
-
-When user `claim_id`, did not specify `oldSocketId`.
-
-### INVALID_OLD_SOCKET_ID
-
-When user `claim_id`, specified `oldSocketId` was never connected before.
-
 ### INVALID_USER_LIMIT
 
 When a invalid `userLimit` is specified when creating a room.
@@ -522,15 +482,3 @@ or more of the accepted category.
 ### INVALID_PUSH_TOKEN
 
 When invalid `pushToken` is specified on `registerPush`.
-
-### CLAIM_TOKEN_REJECTED
-
-When `claimToken` specified in `claimId` is not accepted.
-
-### NO_CLAIM_TOKEN
-
-When `claimToken` is not specified in `set_claim_token`.
-
-### INVALID_CLAIM_TOKEN
-
-When invalid `claimToken` is sent int `set_claim_token`, it must be a string.
