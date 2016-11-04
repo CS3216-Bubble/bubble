@@ -36,11 +36,13 @@ const RoomDB = database.define('room', {
   lastActive: Sequelize.DATE,
   numUsers: Sequelize.INTEGER,
   createdBy: { type: Sequelize.STRING, allowNull: false }, // socket id
+  createdByBubbleId: { type: Sequelize.STRING, allowNull: false }, // socket id
   isOpen: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true },
 });
 
 const MessageDB = database.define('message', {
   userId: { type: Sequelize.STRING, allowNull: false }, // socket id
+  bubbleId: { type: Sequelize.STRING, allowNull: false }, // bubble id
   messageType: Sequelize.ENUM( // eslint-disable-line new-cap
     MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION),
   content: { type: Sequelize.TEXT, allowNull: false },
