@@ -773,8 +773,36 @@ function onSetClaimToken(socket) {
   return onSetClaimTokenData;
 }
 
+const TokenToId = {};
+const BubbleToSockets = {};
+
+function onMyId(socket) {
+  function onMyId() {
+    socket.emit(k.MY_ID, socket.bubbleId);
+  }
+  return onMyId;
+}
+
 io.on(k.CONNECTION, function(socket) {
   logger.info('%s connects', socket.id, { event: k.CONNECTION });
+
+  // try to get a claim token in query
+  const bubbleToken = socket.request._query.bubble;
+
+  let bubbleId = uuid.v4();
+
+  if (bubbleToken) {
+    if (TokenToId[bubbleToken]) {
+      bubbleId = TokenToId[bubbleToken];
+    } else {
+      TokenToId[bubbleToken] = bubbleId;
+    }
+  }
+  BubbleToSockets[bubbleId] = BubbleToSockets[bubbleId] || [];
+  BubbleToSockets[bubbleId].push(socket.id);
+
+  socket.bubbleId = bubbleId;
+
   SOCKETS[socket.id] = socket;
   socket.on(k.CLAIM_ID, onClaimId(socket));
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
@@ -796,6 +824,7 @@ io.on(k.CONNECTION, function(socket) {
   socket.on(k.MY_ROOMS, onMyRooms(socket));
   socket.on(k.REGISTER_PUSH, onRegisterPush(socket));
   socket.on(k.SET_CLAIM_TOKEN, onSetClaimToken(socket));
+  socket.on(k.MY_ID, onMyId(socket));
 });
 
 export {
