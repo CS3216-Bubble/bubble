@@ -8,85 +8,102 @@
   var typing = $('#typingindicator');
   var exitRoom = $('#exitroom');
   exitRoom.hide();
+  var socket;
 
-  var socket = io();
+  $('#stateform').submit(function() {
+    let state = $('#state').val();
+    socket = io(`ws://localhost:3000/?bubble=${state}`)
+    attachListeners(socket);
+    return false;
+  })
 
-  socket.on('list_rooms', function(msg) {
-    console.log('listing rooms:');
-    console.log(msg);
-  });
+  function attachListeners(socket) {
+    socket.on('connected', function(msg) {
+      console.log('connected');
+      console.log(msg);
+    });
+    socket.on('list_rooms', function(msg) {
+      console.log('listing rooms:');
+      console.log(msg);
+    });
 
-  socket.on('view_room', function(msg) {
-    console.log('viewing rooms:');
-    console.log(msg);
-  });
+    socket.on('view_room', function(msg) {
+      console.log('viewing rooms:');
+      console.log(msg);
+    });
 
-  socket.on('create_room', function(msg) {
-    console.log(`room created ${msg.roomId}`);
-    roomId = msg.roomId;
-    currentRoom.val(roomId);
-    exitRoom.show();
-  });
+    socket.on('create_room', function(msg) {
+      console.log(`room created ${msg.roomId}`);
+      roomId = msg.roomId;
+      currentRoom.val(roomId);
+      exitRoom.show();
+    });
 
-  socket.on('join_room', function(msg) {
-    if (socket.id === msg.userId) {
-      msgs.append(
-        `<li>You have just joined this room.
-        There are ${msg.participants.length} people in this room.</li>`
-      );
-      // same user, do nothing
-    } else {
-      console.log(`user ${msg.userId} joined this room`);
-      msgs.append(
-        `<li>${msg.userId} has joined the room</li>`
-      );
-    }
-  });
+    socket.on('join_room', function(msg) {
+      if (socket.id === msg.userId) {
+        msgs.append(
+          `<li>You have just joined this room.
+          There are ${msg.participants.length} people in this room.</li>`
+        );
+        // same user, do nothing
+      } else {
+        console.log(`user ${msg.bubbleId} joined this room`);
+        msgs.append(
+          `<li>${msg.bubbleId} has joined the room</li>`
+        );
+      }
+    });
 
-  socket.on('add_message', function(msg) {
-    if (socket.id === msg.userId) {
-      // same user, do nothing
-    } else {
-      console.log(`user ${msg.userId} said "${msg.content}"`);
-      msgs.append(
-        `<li>${msg.userId}: "${msg.content}"</li>`
-      );
-    }
-  });
+    socket.on('add_message', function(msg) {
+      if (socket.id === msg.userId) {
+        // same user, do nothing
+      } else {
+        console.log(`user ${msg.bubbleId} said "${msg.content}"`);
+        msgs.append(
+          `<li>${msg.bubbleId}: "${msg.content}"</li>`
+        );
+      }
+    });
 
-  socket.on('typing', function(msg) {
-    typing.text(`${msg.userId} is typing`);
-  });
+    socket.on('typing', function(msg) {
+      typing.text(`${msg.bubbleId} is typing`);
+    });
 
-  socket.on('stop_typing', function() {
-    typing.text('');
-  });
+    socket.on('stop_typing', function() {
+      typing.text('');
+    });
 
-  socket.on('counsellor_online', function() {
-    $('#conline').text('Online as Counsellor');
-  });
+    socket.on('counsellor_online', function() {
+      $('#conline').text('Online as Counsellor');
+    });
 
-  socket.on('find_counsellor', function(data) {
-    console.log(data);
-    if (isCounsellor) {
-      $('#clist').html(`
-              Chatting with
-              <p>${data.userId}</p>
-          `);
-    } else {
-      $('#clist').html(`
-              Chatting with
-              <p>${data.counsellorId}</p>
-              <p>${data.counsellorName}</p>
-          `);
-    }
+    socket.on('find_counsellor', function(data) {
+      console.log(data);
+      if (isCounsellor) {
+        $('#clist').html(`
+                Chatting with
+                <p>${data.bubbleId}</p>
+            `);
+      } else {
+        $('#clist').html(`
+                Chatting with
+                <p>${data.counsellorId}</p>
+                <p>${data.counsellorName}</p>
+            `);
+      }
 
-    currentRoom.val(data.roomId);
-  });
+      currentRoom.val(data.roomId);
+    });
 
-  socket.on('exit_room', function(data) {
-    msgs.append(`<li>${data.userId} exited the room</li>`);
-  });
+    socket.on('exit_room', function(data) {
+      msgs.append(`<li>${data.bubleId} exited the room</li>`);
+    });
+
+    socket.on('my_id', function(data) {
+      console.log(`My id is: ${data}`);
+    });
+
+  }
 
   $('form#list').submit(function() {
     socket.emit('list_rooms');
@@ -157,6 +174,11 @@
     exitRoom.hide();
     return false;
   });
+
+  $('#myidform').submit(function() {
+    socket.emit('my_id');
+    return false;
+  })
 
   var kdtimeout;
   msgInput.on('keydown', function() {
