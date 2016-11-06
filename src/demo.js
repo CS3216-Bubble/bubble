@@ -1,6 +1,5 @@
 (function($, io) {
   var roomId;
-  var state = $('#state');
   var currentRoom = $('#currentRoom');
   var isCounsellor = false;
   var msgs = $('#messages');
@@ -12,10 +11,10 @@
 
   $('#stateform').submit(function() {
     let state = $('#state').val();
-    socket = io(`ws://localhost:3000/?bubble=${state}`)
+    socket = io(`ws://localhost:3000/?bubble=${state}`);
     attachListeners(socket);
     return false;
-  })
+  });
 
   function attachListeners(socket) {
     socket.on('connected', function(msg) {
@@ -102,7 +101,6 @@
     socket.on('my_id', function(data) {
       console.log(`My id is: ${data}`);
     });
-
   }
 
   $('form#list').submit(function() {
@@ -178,7 +176,7 @@
   $('#myidform').submit(function() {
     socket.emit('my_id');
     return false;
-  })
+  });
 
   var kdtimeout;
   msgInput.on('keydown', function() {
