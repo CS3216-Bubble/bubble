@@ -2,9 +2,11 @@ import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
 
-// import * as k from '../src/constants';
-// import * as e from '../src/error_code';
 import { server } from '../src/app'; // eslint-disable-line no-unused-vars
+
+function connectWithToken(token) {
+  return io.connect(`http://localhost:3000?bubble=${token}`);
+}
 
 describe('API', function() {
   beforeEach(function(done) {
@@ -17,13 +19,9 @@ describe('API', function() {
     done();
   });
 
-  it('assigns me a bubbleId', function(done) {
-    var socket = io.connect("http://localhost:3000", {
-      transports: ['websocket'],
-    });
-    socket.on('connect', () => {
-      socket.emit('my_id');
-    });
+  it('tells me my socket id once I connect', function(done) {
+    const socket = io.connect("http://localhost:3000");
+
     socket.on('my_id', data => {
       data.should.not.be.empty();
       done();
@@ -31,17 +29,12 @@ describe('API', function() {
   });
 
   it('assigns me same bubbleId same token is used', function(done) {
-    let token = '123';
-    let connect = () => io.connect(`http://localhost:3000?bubble=${token}`);
+    const token = '123';
 
     // use 2 different io.connect calls to avoid any shared state
-    let socketOld = connect();
+    let socketOld = connectWithToken(token);
     let socketNew;
     let myBubbleId;
-
-    socketOld.on('connect', () => {
-      socketOld.emit('my_id');
-    });
 
     socketOld.on('my_id', data => {
       data.should.not.be.empty();
@@ -51,10 +44,7 @@ describe('API', function() {
     });
 
     socketOld.on('disconnect', () => {
-      socketNew = connect();
-      socketNew.on('connect', () => {
-        socketNew.emit('my_id');
-      });
+      socketNew = connectWithToken(token);
 
       socketNew.on('my_id', data => {
         data.should.not.be.empty();
@@ -68,16 +58,11 @@ describe('API', function() {
   it('assigns different bubbleId if different token', function(done) {
     let tokenOld = '123';
     let tokenNew = '456';
-    let connect = token => io.connect(`http://localhost:3000?bubble=${token}`);
 
     // use 2 different io.connect calls to avoid any shared state
-    let socketOld = connect(tokenOld);
+    let socketOld = connectWithToken(tokenOld);
     let socketNew;
     let myBubbleId;
-
-    socketOld.on('connect', () => {
-      socketOld.emit('my_id');
-    });
 
     socketOld.on('my_id', data => {
       data.should.not.be.empty();
@@ -87,10 +72,7 @@ describe('API', function() {
     });
 
     socketOld.on('disconnect', () => {
-      socketNew = connect(tokenNew);
-      socketNew.on('connect', () => {
-        socketNew.emit('my_id');
-      });
+      socketNew = connectWithToken(tokenNew);
 
       socketNew.on('my_id', data => {
         data.should.not.be.empty();

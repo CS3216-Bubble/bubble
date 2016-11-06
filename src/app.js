@@ -750,6 +750,8 @@ io.on(k.CONNECTION, function(socket) {
   BubbleToSockets[bubbleId].push(socket.id);
 
   socket.bubbleId = bubbleId;
+  // tell socket what bubbleId it has
+  socket.emit(k.MY_ID, socket.bubbleId);
 
   SOCKETS[socket.id] = socket;
   socket.on(k.CREATE_ROOM, onCreateRoom(socket));
