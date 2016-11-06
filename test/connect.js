@@ -32,7 +32,7 @@ describe('API', function() {
     const token = '123';
 
     // use 2 different io.connect calls to avoid any shared state
-    let socketOld = connectWithToken(token);
+    const socketOld = connectWithToken(token);
     let socketNew;
     let myBubbleId;
 
@@ -56,11 +56,11 @@ describe('API', function() {
   });
 
   it('assigns different bubbleId if different token', function(done) {
-    let tokenOld = '123';
-    let tokenNew = '456';
+    const tokenOld = '123';
+    const tokenNew = '456';
 
     // use 2 different io.connect calls to avoid any shared state
-    let socketOld = connectWithToken(tokenOld);
+    const socketOld = connectWithToken(tokenOld);
     let socketNew;
     let myBubbleId;
 

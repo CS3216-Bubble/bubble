@@ -39,7 +39,7 @@
     });
 
     socket.on('join_room', function(msg) {
-      if (socket.id === msg.userId) {
+      if (socket.bubbleId === msg.bubbleId) {
         msgs.append(
           `<li>You have just joined this room.
           There are ${msg.participants.length} people in this room.</li>`
@@ -54,7 +54,7 @@
     });
 
     socket.on('add_message', function(msg) {
-      if (socket.id === msg.userId) {
+      if (socket.bubbleId === msg.bubbleId) {
         // same user, do nothing
       } else {
         console.log(`user ${msg.bubbleId} said "${msg.content}"`);
@@ -95,11 +95,12 @@
     });
 
     socket.on('exit_room', function(data) {
-      msgs.append(`<li>${data.bubleId} exited the room</li>`);
+      msgs.append(`<li>${data.bubbleId} exited the room</li>`);
     });
 
-    socket.on('my_id', function(data) {
-      console.log(`My id is: ${data}`);
+    socket.on('my_id', function(bubbleId) {
+      console.log(`My id is: ${bubbleId}`);
+      socket.bubbleId = bubbleId;
     });
   }
 
@@ -141,7 +142,7 @@
       message,
     });
     msgs.append(
-      `<li>${socket.id}: "${message}"</li>`
+      `<li>${socket.bubbleId}: "${message}"</li>`
     );
     msgInput.val('');
     return false;
