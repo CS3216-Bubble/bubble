@@ -96,7 +96,17 @@ function validateCategories(cats) {
     cats.map(validCategory).reduce((x, y) => x && y, true);
 }
 
+/**
+ * Tests that bubble token is valid, is string and is uuid.
+ * @param {any} token token to check
+ * @return {bool} if token is valid
+ */
+function validateBubbleToken(token) {
+  return validateString(token) && validateUuid(token);
+}
+
 export {
+  validateBubbleToken,
   validateCategories,
   validateMessage,
   validateRoomId,

@@ -1,3 +1,4 @@
+import uuid from 'uuid';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
@@ -29,7 +30,7 @@ describe.skip('API', function() {
   });
 
   it('assigns me same bubbleId same token is used', function(done) {
-    const token = '123';
+    const token = uuid.v4();
 
     // use 2 different io.connect calls to avoid any shared state
     const socketOld = connectWithToken(token);
@@ -56,8 +57,8 @@ describe.skip('API', function() {
   });
 
   it('assigns different bubbleId if different token', function(done) {
-    const tokenOld = '123';
-    const tokenNew = '456';
+    const tokenOld = uuid.v4();
+    const tokenNew = uuid.v4();
 
     // use 2 different io.connect calls to avoid any shared state
     const socketOld = connectWithToken(tokenOld);

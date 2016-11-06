@@ -16,6 +16,7 @@ import USER_TYPE from './models/user_type';
 import Push from './push';
 import logger from './logging';
 import {
+  validateBubbleToken,
   validateCategories,
   validateMessage,
   validateRoomId,
@@ -719,7 +720,7 @@ io.on(k.CONNECTION, function(socket) {
 
   let bubbleId = uuid.v4();
 
-  if (bubbleToken) {
+  if (validateBubbleToken(bubbleToken)) {
     if (TokenToId[bubbleToken]) {
       bubbleId = TokenToId[bubbleToken];
     } else {
@@ -730,7 +731,13 @@ io.on(k.CONNECTION, function(socket) {
   BubbleToSockets[bubbleId].push(socket);
 
   socket.bubbleId = bubbleId;
-  logger.info('%s (%s) connects', socket.id, socket.bubbleId, { event: k.CONNECTION });
+  logger.info(
+    '%s (%s) connects with %s',
+    socket.id,
+    socket.bubbleId,
+    bubbleToken,
+    { event: k.CONNECTION }
+  );
   // tell socket what bubbleId it has
   socket.emit(k.MY_ID, socket.bubbleId);
 

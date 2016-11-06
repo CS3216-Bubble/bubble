@@ -1,3 +1,4 @@
+import uuid from 'uuid';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import io from 'socket.io-client';
 import should from 'should'; // eslint-disable-line no-unused-vars
@@ -98,8 +99,9 @@ describe('API', function() {
 
     it('should send all I_EXIT to all sockets for bubbleId', function(done) {
       // make 2 clients that represent the same bubble user
-      const clientA = makeClientWithToken(io, '123');
-      const clientB = makeClientWithToken(io, '123');
+      const token = uuid.v4();
+      const clientA = makeClientWithToken(io, token);
+      const clientB = makeClientWithToken(io, token);
 
       let numIExit = 0;
 
