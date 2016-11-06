@@ -666,30 +666,6 @@ const onListIssues = socket => data => {
   });
 };
 
-// const requireRoomId = socket => data => nextFn => {
-//   if (!data.roomId) {
-//     //emit error
-//   }
-//   return RoomDB.create()
-//   nextFn(socket, data, )
-// }
-
-// const onJoinRoom = socket => data => {
-//   requireRoomId(socket)(data)
-//     .then(room => {
-
-//     })
-// }
-
-// const middle = socket, event, middle, final => {
-//   fn = data => {
-//     const ms = middle.map(m => m(socket)).map(m => m(data));
-
-//   }
-//   socket.on(event, fn)
-
-// }
-
 function onMyRooms(socket) {
   function onMyRoomsData() {
     socket.emit(
