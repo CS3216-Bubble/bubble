@@ -12,6 +12,7 @@ import {
   errorRoomIdNotFound,
   errorWithoutRoomId,
   makeClient,
+  makeClientWithToken,
 } from './helpers';
 
 describe('API', function() {
@@ -66,7 +67,7 @@ describe('API', function() {
     });
 
     it('should emit I_EXIT event to user who exited', function(done) {
-      client2.on(k.EXIT_ROOM, data => {
+      client2.on(k.I_EXIT, data => {
         data.should.have.keys('userId');
         data.userId.should.equal(client2.id);
         done();
@@ -93,6 +94,30 @@ describe('API', function() {
         client2.emit(k.EXIT_ROOM, { roomId });
       });
       client2.emit(k.JOIN_ROOM, { roomId });
+    });
+
+    it('should send all I_EXIT to all sockets for bubbleId', function(done) {
+      // make 2 clients that represent the same bubble user
+      const clientA = makeClientWithToken(io, '123');
+      const clientB = makeClientWithToken(io, '123');
+
+      let numIExit = 0;
+
+      [clientA, clientB].forEach(client => {
+        client.on(k.I_EXIT, () => {
+          // only done after both clients receive this event
+          numIExit += 1;
+          if (numIExit === 2) {
+            done();
+          }
+        });
+      });
+
+      client.on(k.JOIN_ROOM, () => {
+        clientA.emit(k.EXIT_ROOM, { roomId });
+      });
+
+      clientA.emit(k.JOIN_ROOM, { roomId });
     });
   });
 });

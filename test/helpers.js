@@ -127,6 +127,18 @@ function makeClient(io) {
   });
 }
 
+/**
+ * Creates a socket.io client on default host and port
+ * @param {object} io socket.io
+ * @param {string} token bubble token
+ * @return {object} socket.io client
+ */
+function makeClientWithToken(io, token) {
+  return io.connect(`http://localhost:3000?bubble=${token}`, {
+    transports: ['websocket'],
+  });
+}
+
 const uuid4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
@@ -149,6 +161,7 @@ export {
   errorRoomIdNotFound,
   errorWithoutRoomId,
   makeClient,
+  makeClientWithToken,
   matchUuid4,
   uuid4Regex,
 };

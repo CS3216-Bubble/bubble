@@ -34,6 +34,8 @@ app.use(raven.middleware.express.errorHandler(process.env.RAVEN_URL));
 
 // TODO cache rooms query
 const SOCKETS = {};
+const TokenToId = {};
+const BubbleToSockets = {};
 // [id] -> [rooms];
 const SocketIdToRooms = {};
 
@@ -246,30 +248,36 @@ const onExitRoom = ensureRoomExists(socket => data => {
     const message = `User is not in room ${room.roomId}.`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
+
   room.numUsers -= 1;
   return room.save()
     .then(
       () => {
-        return socket.leave(room.roomId, () => {
-          socket.to(room.roomId).emit(k.EXIT_ROOM, {
-            roomId: room.roomId,
-            userId: socket.id,
-            bubbleId: socket.bubbleId,
-          });
+        const socketsToExit = BubbleToSockets[socket.bubbleId] || [socket];
+        let toWait = socketsToExit.length;
+        socketsToExit.forEach(socket => {
+          socket.leave(room.roomId, () => {
+            // each socket of bubbleId will get this event
+            socket.emit(k.I_EXIT, {
+              roomId: room.roomId,
+              userId: socket.id,
+              bubbleId: socket.bubbleId,
+            });
 
-          logger.info(
-            '%s (%s) exits %s', socket.id, socket.bubbleId, room.roomId, { event: k.EXIT_ROOM });
-          pushManager.unsubscribeSocketToRoomEvents(socket.id, room.roomId);
+            // but for all other users, only send exit_room when
+            // all sockets of this bubbleId has exited
+            toWait -= 1;
+            if (toWait === 0) {
+              socket.to(room.roomId).emit(k.EXIT_ROOM, {
+                roomId: room.roomId,
+                userId: socket.id,
+                bubbleId: socket.bubbleId,
+              });
 
-          socket.emit(k.I_EXIT, {
-            roomId: room.roomId,
-            userId: socket.id,
-            bubbleId: socket.bubbleId,
-          });
-          return socket.emit(k.EXIT_ROOM, {
-            roomId: room.roomId,
-            userId: socket.id,
-            bubbleId: socket.bubbleId,
+              logger.info(
+                '%s (%s) exit %s', socket.id, socket.bubbleId, room.roomId, { event: k.EXIT_ROOM });
+              pushManager.unsubscribeSocketToRoomEvents(socket.id, room.roomId);
+            }
           });
         });
       }
@@ -698,9 +706,6 @@ function pushNotification(roomId, title = '', body = '') {
     .catch(err => logger.error(err));
 }
 
-const TokenToId = {};
-const BubbleToSockets = {};
-
 function onMyId(socket) {
   function onMyId() {
     socket.emit(k.MY_ID, socket.bubbleId);
@@ -722,7 +727,7 @@ io.on(k.CONNECTION, function(socket) {
     }
   }
   BubbleToSockets[bubbleId] = BubbleToSockets[bubbleId] || [];
-  BubbleToSockets[bubbleId].push(socket.id);
+  BubbleToSockets[bubbleId].push(socket);
 
   socket.bubbleId = bubbleId;
   logger.info('%s (%s) connects', socket.id, socket.bubbleId, { event: k.CONNECTION });
