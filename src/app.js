@@ -156,7 +156,7 @@ const onCreateRoom = socket => data => {
       socket.emit(k.CREATE_ROOM, roomToJSON(room));
       cacheSocketRooms(socket);
       logger.info(
-        '%s creates %s', socket.id, room.roomId, { event: k.CREATE_ROOM });
+        '%s (%s) creates %s', socket.id, socket.bubbleId, room.roomId, { event: k.CREATE_ROOM });
       pushManager.subscribeSocketToRoomEvents(socket.id, room.roomId);
     }))
     .catch(e => logger.error(e));
@@ -175,6 +175,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
     return socket.emit(k.JOIN_ROOM, {
       ...roomToJSON(room),
       userId: socket.id,
+      bubbleId: socket.bubbleId,
       messages: filterMessagesLimitX(room.messages),
     });
   }
@@ -200,7 +201,7 @@ const onJoinRoom = ensureRoomExists(socket => data => {
         cacheSocketRooms(socket);
 
         logger.info(
-          '%s joins %s', socket.id, room.roomId, { event: k.JOIN_ROOM });
+          '%s (%s) joins %s', socket.id, socket.bubbleId, room.roomId, { event: k.JOIN_ROOM });
 
         pushManager.subscribeSocketToRoomEvents(socket.id, room.roomId);
 
@@ -257,7 +258,7 @@ const onExitRoom = ensureRoomExists(socket => data => {
           });
 
           logger.info(
-            '%s exits %s', socket.id, room.roomId, { event: k.EXIT_ROOM });
+            '%s (%s) exits %s', socket.id, socket.bubbleId, room.roomId, { event: k.EXIT_ROOM });
           pushManager.unsubscribeSocketToRoomEvents(socket.id, room.roomId);
 
           socket.emit(k.I_EXIT, {
@@ -279,7 +280,7 @@ const onTyping = ensureRoomExists(socket => data => {
   const room = data.room;
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
-    const message = `User is not in room ${room.roomId}.`;
+    const message = `User ${socket.id} (${socket.bubbleId}) is not in room ${room.roomId}.`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
@@ -294,7 +295,7 @@ const onStopTyping = ensureRoomExists(socket => data => {
   const room = data.room;
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
-    const message = `User is not in room ${room.roomId}.`;
+    const message = `User ${socket.id} (${socket.bubbleId}) is not in room ${room.roomId}.`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
@@ -320,7 +321,7 @@ const onAddMessage = ensureRoomExists(socket => data => {
   }
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
-    const message = `User ${socket.id} is not in room ${room.roomId}`;
+    const message = `User ${socket.id} (${socket.bubbleId}) is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
@@ -366,7 +367,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
   let { targetUserBubbleId } = data;
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
-    const message = `User ${socket.id} is not in room ${room.roomId}`;
+    const message = `User ${socket.id} (${socket.bubbleId}) is not in room ${room.roomId}`;
     return emitAppError(socket, e.USER_NOT_IN_ROOM, message);
   }
 
@@ -477,7 +478,7 @@ const onListRooms = socket => () => {
 
 const onDisconnect = socket => () => {
   // don't delete, we need the connection status
-  logger.info('%s disconnects', socket.id, { event: k.DISCONNECT });
+  logger.info('%s (%s) disconnects', socket.id, socket.bubbleId, { event: k.DISCONNECT });
 };
 
 const onDisconnecting = socket => () => {
@@ -732,8 +733,6 @@ function onMyId(socket) {
 }
 
 io.on(k.CONNECTION, function(socket) {
-  logger.info('%s connects', socket.id, { event: k.CONNECTION });
-
   // try to get a token in query
   const bubbleToken = socket.request._query.bubble;
 
@@ -750,6 +749,7 @@ io.on(k.CONNECTION, function(socket) {
   BubbleToSockets[bubbleId].push(socket.id);
 
   socket.bubbleId = bubbleId;
+  logger.info('%s (%s) connects', socket.id, socket.bubbleId, { event: k.CONNECTION });
   // tell socket what bubbleId it has
   socket.emit(k.MY_ID, socket.bubbleId);
 
