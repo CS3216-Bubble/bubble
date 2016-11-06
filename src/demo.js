@@ -1,5 +1,6 @@
 (function($, io) {
   var roomId;
+  var state = $('#state');
   var currentRoom = $('#currentRoom');
   var isCounsellor = false;
   var msgs = $('#messages');

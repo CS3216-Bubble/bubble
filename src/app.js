@@ -362,6 +362,8 @@ const onAddMessage = ensureRoomExists(socket => data => {
 const onAddReaction = ensureRoomExists(socket => data => {
   const room = data.room;
   const { reaction, targetUser } = data;
+  /* TODO: frontend doesn't send this yet, it should */
+  let { targetUserBubbleId } = data;
 
   if (!Object.keys(socket.rooms).includes(room.roomId)) {
     const message = `User ${socket.id} is not in room ${room.roomId}`;
@@ -377,6 +379,11 @@ const onAddReaction = ensureRoomExists(socket => data => {
     const message = `No targetUser specified for reaction.`;
     return emitAppError(socket, e.NO_TARGET_USER, message);
   }
+  /* TODO: temp fix for transition to bubble id */
+  /* if frontend sends it, use it, otherwise we try to find from sockets */
+  if (typeof targetUserBubbleId === 'undefined') {
+    targetUserBubbleId = SOCKETS[targetUser] && SOCKETS[targetUser].bubbleId;
+  }
 
   let msg;
   MessageDB
@@ -386,6 +393,7 @@ const onAddReaction = ensureRoomExists(socket => data => {
       content: reaction,
       roomRoomId: room.roomId,
       targetUser: targetUser,
+      targetUserBubbleId,
       bubbleId: socket.bubbleId,
     })
     .then(m => {

@@ -47,6 +47,7 @@ const MessageDB = database.define('message', {
     MESSAGE_TYPE.MESSAGE, MESSAGE_TYPE.REACTION),
   content: { type: Sequelize.TEXT, allowNull: false },
   targetUser: Sequelize.STRING,
+  targetUserBubbleId: Sequelize.STRING,
 });
 
 MessageDB.belongsTo(RoomDB);
