@@ -451,17 +451,19 @@ const onListRooms = socket => () => {
   RoomDB
     .findAll({
       where: {
-        $or: [
-          {
-            lastActive: {
-              $gt: new Date(new Date() - STALE_TIME),
+        $and: {
+          isOpen: true,
+          $or: [
+            {
+              lastActive: {
+                $gt: new Date(new Date() - STALE_TIME),
+              },
             },
-          },
-          {
-            roomType: ROOM_TYPE.HOT,
-          }
-        ]
-
+            {
+              roomType: ROOM_TYPE.HOT,
+            }
+          ],
+        }
       },
       include: [MessageDB],
       order: [
